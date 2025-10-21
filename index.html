@@ -1,0 +1,2674 @@
+﻿<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>24u Loop Leuven - Tracker</title>
+    
+    <!-- PWA Meta Tags -->
+    <meta name="description" content="24u Loop Leuven - Live tracking en tijdregistratie voor de 24-uurs loop">
+    <meta name="theme-color" content="#f2a342">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="24u Loop">
+    <link rel="manifest" href="manifest.json">
+    
+    <!-- Favicon and Icons -->
+    <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        humasol: {
+                            orange: '#f2a342',
+                            brown: '#863c14',
+                            gray: '#666666',
+                            white: '#ffffff',
+                            beige: '#bd9f8e'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    
+    <style>
+        /* Dark mode global styles - Using professional Slate palette */
+        .dark-mode {
+            color-scheme: dark;
+        }
+        
+        /* Background colors - Slate palette */
+        .dark-mode .bg-white {
+            background-color: #1e293b !important; /* slate-800 */
+        }
+        
+        .dark-mode .bg-gray-50 {
+            background-color: #334155 !important; /* slate-700 */
+        }
+        
+        .dark-mode .bg-gray-100 {
+            background-color: #334155 !important; /* slate-700 */
+        }
+        
+        /* Text colors - High contrast for readability */
+        .dark-mode .text-gray-900 {
+            color: #f1f5f9 !important; /* slate-100 */
+        }
+        
+        .dark-mode .text-gray-800 {
+            color: #e2e8f0 !important; /* slate-200 */
+        }
+        
+        .dark-mode .text-gray-700 {
+            color: #cbd5e1 !important; /* slate-300 */
+        }
+        
+        .dark-mode .text-gray-600 {
+            color: #94a3b8 !important; /* slate-400 */
+        }
+        
+        .dark-mode .text-gray-500 {
+            color: #64748b !important; /* slate-500 */
+        }
+        
+        .dark-mode .text-gray-400 {
+            color: #94a3b8 !important; /* slate-400 */
+        }
+        
+        /* Force light text on all elements */
+        .dark-mode .text-black {
+            color: #f1f5f9 !important; /* slate-100 */
+        }
+        
+        .dark-mode h1,
+        .dark-mode h2,
+        .dark-mode h3,
+        .dark-mode h4,
+        .dark-mode h5,
+        .dark-mode h6,
+        .dark-mode p,
+        .dark-mode span,
+        .dark-mode div,
+        .dark-mode label,
+        .dark-mode button {
+            color: inherit;
+        }
+        
+        /* Borders */
+        .dark-mode .border-gray-200 {
+            border-color: #334155 !important; /* slate-700 */
+        }
+        
+        .dark-mode .border-gray-300 {
+            border-color: #475569 !important; /* slate-600 */
+        }
+        
+        /* Form elements */
+        .dark-mode input,
+        .dark-mode textarea,
+        .dark-mode select {
+            background-color: #0f172a !important; /* slate-900 */
+            color: #f1f5f9 !important; /* slate-100 */
+            border-color: #475569 !important; /* slate-600 */
+        }
+        
+        .dark-mode input::placeholder {
+            color: #64748b !important; /* slate-500 */
+        }
+        
+        /* Buttons with text */
+        .dark-mode button:not(.bg-humasol-orange):not(.bg-red-600):not(.bg-green-600):not(.bg-blue-600) {
+            color: #e2e8f0 !important; /* slate-200 */
+        }
+        
+        /* Warning/Alert colors - Keep them visible and vibrant */
+        .dark-mode .bg-red-100 {
+            background-color: #450a0a !important; /* red-950 */
+        }
+        
+        .dark-mode .bg-orange-100 {
+            background-color: #431407 !important; /* orange-950 */
+        }
+        
+        .dark-mode .bg-yellow-50 {
+            background-color: #422006 !important; /* yellow-950 */
+        }
+        
+        .dark-mode .bg-green-50 {
+            background-color: #052e16 !important; /* green-950 */
+        }
+        
+        .dark-mode .bg-blue-50 {
+            background-color: #172554 !important; /* blue-950 */
+        }
+        
+        .dark-mode .text-red-700 {
+            color: #fca5a5 !important; /* red-300 */
+        }
+        
+        .dark-mode .text-orange-700 {
+            color: #fdba74 !important; /* orange-300 */
+        }
+        
+        .dark-mode .text-yellow-700 {
+            color: #fde047 !important; /* yellow-300 */
+        }
+        
+        .dark-mode .text-red-600 {
+            color: #fca5a5 !important; /* red-300 */
+        }
+        
+        .dark-mode .text-orange-600 {
+            color: #fdba74 !important; /* orange-300 */
+        }
+        
+        /* Keep brand colors vibrant */
+        .dark-mode .text-humasol-orange {
+            color: #f2a342 !important;
+        }
+        
+        .dark-mode .bg-humasol-orange {
+            background-color: #f2a342 !important;
+        }
+        
+        .dark-mode .text-humasol-brown {
+            color: #f2a342 !important; /* Use orange instead of brown for visibility */
+        }
+        
+        /* Green text stays bright for visibility */
+        .dark-mode .text-green-600 {
+            color: #4ade80 !important; /* green-400 */
+        }
+        
+        /* Indigo colors for status indicators */
+        .dark-mode .bg-indigo-100 {
+            background-color: #312e81 !important; /* indigo-900 */
+        }
+        
+        .dark-mode .text-indigo-700 {
+            color: #a5b4fc !important; /* indigo-300 */
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script>
+        const { useState, useEffect, createElement: h } = React;
+
+
+	const firebaseConfig = {
+  		apiKey: "AIzaSyAnUmmQAxXy1nVwA_qehBAkNbERPZQVhgc",
+  		authDomain: "u-loop-leuven.firebaseapp.com",
+  		projectId: "u-loop-leuven",
+  		storageBucket: "u-loop-leuven.firebasestorage.app",
+  		messagingSenderId: "996227210189",
+  		appId: "1:996227210189:web:d2ac530ac7ab6a55f54284",
+  		measurementId: "G-KRMGWHP32C"
+	};
+
+        // Initialize Firebase
+        let db;
+        let isFirebaseConfigured = false;
+        
+        try {
+            if (firebaseConfig.apiKey !== "YOUR_API_KEY") {
+                firebase.initializeApp(firebaseConfig);
+                db = firebase.firestore();
+                isFirebaseConfigured = true;
+                console.log("✅ Firebase verbonden!");
+            } else {
+                console.warn("⚠️ Demo modus - configureer Firebase voor multi-device sync");
+            }
+        } catch (error) {
+            console.error("Firebase init error:", error);
+        }
+
+        // Demo storage (fallback als Firebase niet geconfigureerd is)
+        const demoStorage = {
+            runners: [],
+            laps: [],
+            queue: [],
+            activeRunner: [],
+            listeners: []
+        };
+
+        // Firestore wrapper
+        const firestoreWrapper = {
+            collection: (name) => {
+                if (isFirebaseConfigured) {
+                    return db.collection(name);
+                }
+                
+                return {
+                    onSnapshot: (callback) => {
+                        const listener = { collection: name, callback };
+                        demoStorage.listeners.push(listener);
+                        
+                        const docs = (demoStorage[name] || []).map((data, id) => ({
+                            id: id.toString(),
+                            data: () => data
+                        }));
+                        callback({ docs });
+                        
+                        return () => {
+                            const idx = demoStorage.listeners.indexOf(listener);
+                            if (idx > -1) demoStorage.listeners.splice(idx, 1);
+                        };
+                    },
+                    add: (data) => {
+                        if (!demoStorage[name]) demoStorage[name] = [];
+                        demoStorage[name].push({ ...data, _id: Date.now() });
+                        firestoreWrapper._notifyListeners(name);
+                        return Promise.resolve({ id: (demoStorage[name].length - 1).toString() });
+                    },
+                    doc: (id) => ({
+                        set: (data) => {
+                            const idx = parseInt(id);
+                            if (demoStorage[name] && demoStorage[name][idx]) {
+                                demoStorage[name][idx] = data;
+                                firestoreWrapper._notifyListeners(name);
+                            }
+                            return Promise.resolve();
+                        },
+                        update: (data) => {
+                            const idx = parseInt(id);
+                            if (demoStorage[name] && demoStorage[name][idx]) {
+                                demoStorage[name][idx] = { ...demoStorage[name][idx], ...data };
+                                firestoreWrapper._notifyListeners(name);
+                            }
+                            return Promise.resolve();
+                        },
+                        delete: () => {
+                            const idx = parseInt(id);
+                            if (demoStorage[name]) {
+                                demoStorage[name].splice(idx, 1);
+                                firestoreWrapper._notifyListeners(name);
+                            }
+                            return Promise.resolve();
+                        }
+                    })
+                };
+            },
+            _notifyListeners: (collectionName) => {
+                demoStorage.listeners
+                    .filter(l => l.collection === collectionName)
+                    .forEach(l => {
+                        const docs = (demoStorage[collectionName] || []).map((data, id) => ({
+                            id: id.toString(),
+                            data: () => data
+                        }));
+                        l.callback({ docs });
+                    });
+            }
+        };
+
+        // Icons component
+        const Icon = ({ name, className = "w-5 h-5" }) => {
+            const paths = {
+                play: 'M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z M21 12a9 9 0 11-18 0 9 9 0 0118 0z',
+                pause: 'M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z',
+                plus: 'M12 4v16m8-8H4',
+                users: 'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z',
+                trophy: 'M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z',
+                chart: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z',
+                timer: 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z',
+                flag: 'M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9',
+                arrowRight: 'M13 7l5 5m0 0l-5 5m5-5H6',
+                clock: 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z',
+                shield: 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z',
+                trash: 'M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16',
+                x: 'M6 18L18 6M6 6l12 12',
+                arrowUp: 'M5 10l7-7m0 0l7 7m-7-7v18',
+                arrowDown: 'M19 14l-7 7m0 0l-7-7m7 7V3'
+            };
+            
+            return h('svg', { 
+                className, 
+                fill: 'none', 
+                stroke: 'currentColor', 
+                viewBox: '0 0 24 24',
+                strokeWidth: 2,
+                strokeLinecap: 'round',
+                strokeLinejoin: 'round'
+            }, h('path', { d: paths[name] }));
+        };
+
+        function App() {
+            const [view, setView] = useState('timer');
+            const [runners, setRunners] = useState([]);
+            const [laps, setLaps] = useState([]);
+            const [queue, setQueue] = useState([]);
+            const [activeRunner, setActiveRunner] = useState(null);
+            const [isRunning, setIsRunning] = useState(false);
+            const [startTime, setStartTime] = useState(null);
+            const [elapsedTime, setElapsedTime] = useState(0);
+            const [manualTime, setManualTime] = useState('');
+            const [firstName, setFirstName] = useState('');
+            const [lastName, setLastName] = useState('');
+            const [isTimerView, setIsTimerView] = useState(false);
+            const [isAdminUnlocked, setIsAdminUnlocked] = useState(false);
+            const [adminPassword, setAdminPassword] = useState('');
+            const [showResetConfirm, setShowResetConfirm] = useState(false);
+            const [isDisplayFullscreen, setIsDisplayFullscreen] = useState(false);
+            const [sortColumn, setSortColumn] = useState('name');
+            const [sortDirection, setSortDirection] = useState('asc');
+            const [nameInput, setNameInput] = useState('');
+            const [showSuggestions, setShowSuggestions] = useState(false);
+            const [showAllLaps, setShowAllLaps] = useState(false);
+            const [lapSearchQuery, setLapSearchQuery] = useState('');
+            const [showAllRunners, setShowAllRunners] = useState(false);
+            const [runnerSearchQuery, setRunnerSearchQuery] = useState('');
+            const [editingLapId, setEditingLapId] = useState(null);
+            const [editingLapTime, setEditingLapTime] = useState('');
+            const [showAllAdminLaps, setShowAllAdminLaps] = useState(false);
+            const [showLowQueueWarning, setShowLowQueueWarning] = useState(false);
+            const [isOnline, setIsOnline] = useState(navigator.onLine);
+            const [connectionError, setConnectionError] = useState(null);
+            const [lastSyncTime, setLastSyncTime] = useState(Date.now());
+            const [darkMode, setDarkMode] = useState(() => {
+                // Check localStorage for saved preference, default to false
+                const saved = localStorage.getItem('darkMode');
+                return saved ? JSON.parse(saved) : false;
+            });
+            const [showInstallPrompt, setShowInstallPrompt] = useState(false);
+            const [installPromptEvent, setInstallPromptEvent] = useState(null);
+
+            // PWA Install Prompt Handler
+            useEffect(() => {
+                const handleInstallPrompt = (e) => {
+                    e.preventDefault();
+                    setInstallPromptEvent(e);
+                    setShowInstallPrompt(true);
+                };
+
+                window.addEventListener('beforeinstallprompt', handleInstallPrompt);
+
+                // Check if already installed
+                if (window.matchMedia('(display-mode: standalone)').matches) {
+                    setShowInstallPrompt(false);
+                }
+
+                return () => window.removeEventListener('beforeinstallprompt', handleInstallPrompt);
+            }, []);
+
+            const handleInstallClick = async () => {
+                if (!installPromptEvent) return;
+                
+                installPromptEvent.prompt();
+                const result = await installPromptEvent.userChoice;
+                
+                if (result.outcome === 'accepted') {
+                    console.log('✅ App installed!');
+                } else {
+                    console.log('❌ App installation declined');
+                }
+                
+                setShowInstallPrompt(false);
+                setInstallPromptEvent(null);
+            };
+
+
+            // Save dark mode preference to localStorage
+            useEffect(() => {
+                localStorage.setItem('darkMode', JSON.stringify(darkMode));
+                // Add/remove dark-mode class to body
+                if (darkMode) {
+                    document.body.classList.add('dark-mode');
+                } else {
+                    document.body.classList.remove('dark-mode');
+                }
+            }, [darkMode]);
+
+            // Firebase listeners
+            useEffect(() => {
+                const unsubRunners = firestoreWrapper.collection('runners').onSnapshot(snapshot => {
+                    setRunners(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+                });
+
+                const unsubLaps = firestoreWrapper.collection('laps').onSnapshot(snapshot => {
+                    setLaps(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+                });
+
+                const unsubQueue = firestoreWrapper.collection('queue').onSnapshot(snapshot => {
+                    const sorted = snapshot.docs
+                        .map(doc => ({ id: doc.id, ...doc.data() }))
+                        .sort((a, b) => new Date(a.addedAt) - new Date(b.addedAt));
+                    setQueue(sorted);
+                });
+
+                // Listen to active runner from Firebase
+                const unsubActiveRunner = firestoreWrapper.collection('activeRunner').onSnapshot(snapshot => {
+                    if (snapshot.docs.length > 0) {
+                        const data = snapshot.docs[0].data();
+                        const startTimeMs = data.startTime ? new Date(data.startTime).getTime() : null;
+                        
+                        console.log('📡 Firebase update ontvangen:', {
+                            runner: data.runner,
+                            isRunning: data.isRunning,
+                            startTime: data.startTime,
+                            startTimeMs: startTimeMs,
+                            currentTime: Date.now(),
+                            timeDiff: startTimeMs ? Date.now() - startTimeMs : 0
+                        });
+                        
+                        setActiveRunner(data.runner);
+                        setIsRunning(data.isRunning);
+                        setStartTime(startTimeMs);
+                    } else {
+                        setActiveRunner(null);
+                        setIsRunning(false);
+                        setStartTime(null);
+                        setElapsedTime(0);
+                    }
+                });
+
+                return () => {
+                    unsubRunners();
+                    unsubLaps();
+                    unsubQueue();
+                    unsubActiveRunner();
+                };
+            }, []);
+
+            // Timer - calculate elapsed time from startTime
+            useEffect(() => {
+                let interval;
+                
+                if (isRunning && startTime) {
+                    // Immediate update
+                    setElapsedTime(Date.now() - startTime);
+                    
+                    // Update timer every 10ms based on actual time difference
+                    interval = setInterval(() => {
+                        setElapsedTime(Date.now() - startTime);
+                    }, 10);
+                } else {
+                    setElapsedTime(0);
+                }
+                
+                return () => {
+                    if (interval) clearInterval(interval);
+                };
+            }, [isRunning, startTime]);
+
+            // Resync timer when page becomes visible again (fixes mobile background issue)
+            useEffect(() => {
+                const handleVisibilityChange = () => {
+                    if (!document.hidden && isRunning && startTime) {
+                        // Page is visible again, force immediate timer update
+                        setElapsedTime(Date.now() - startTime);
+                        console.log('✅ Timer resynchroniseerd na terugkeer naar app');
+                    }
+                };
+
+                document.addEventListener('visibilitychange', handleVisibilityChange);
+                window.addEventListener('focus', handleVisibilityChange);
+                
+                return () => {
+                    document.removeEventListener('visibilitychange', handleVisibilityChange);
+                    window.removeEventListener('focus', handleVisibilityChange);
+                };
+            }, [isRunning, startTime]);
+
+            // Monitor queue size and show warning
+            useEffect(() => {
+                const queueSize = queue.length;
+                const hasActiveRunner = activeRunner !== null;
+                
+                // Show warning if queue is low (2 or fewer) and there's an active runner
+                // Or if queue is completely empty
+                if ((queueSize <= 2 && hasActiveRunner) || queueSize === 0) {
+                    setShowLowQueueWarning(true);
+                } else {
+                    setShowLowQueueWarning(false);
+                }
+            }, [queue, activeRunner]);
+
+            // Monitor online/offline status
+            useEffect(() => {
+                const handleOnline = () => {
+                    setIsOnline(true);
+                    setConnectionError(null);
+                    console.log('✅ Internet verbinding hersteld');
+                };
+                
+                const handleOffline = () => {
+                    setIsOnline(false);
+                    setConnectionError('Geen internetverbinding. Data wordt lokaal opgeslagen en gesynchroniseerd wanneer de verbinding hersteld is.');
+                    console.warn('⚠️ Internet verbinding verloren');
+                };
+
+                window.addEventListener('online', handleOnline);
+                window.addEventListener('offline', handleOffline);
+
+                // Check initial connection
+                if (!navigator.onLine) {
+                    handleOffline();
+                }
+
+                return () => {
+                    window.removeEventListener('online', handleOnline);
+                    window.removeEventListener('offline', handleOffline);
+                };
+            }, []);
+
+            // Monitor Firebase connection and sync time
+            useEffect(() => {
+                if (!isFirebaseConfigured) return;
+
+                const unsubscribe = firestoreWrapper.collection('runners').onSnapshot(
+                    (snapshot) => {
+                        // Successfully received data
+                        setLastSyncTime(Date.now());
+                        if (connectionError && isOnline) {
+                            setConnectionError(null);
+                        }
+                    },
+                    (error) => {
+                        // Error receiving data
+                        console.error('Firebase sync error:', error);
+                        setConnectionError(`Firebase fout: ${error.message}. Probeer de pagina te vernieuwen.`);
+                    }
+                );
+
+                return () => unsubscribe();
+            }, [isOnline, connectionError]);
+
+            // Check for stale data (no sync for > 30 seconds while online)
+            useEffect(() => {
+                if (!isFirebaseConfigured || !isOnline) return;
+
+                const interval = setInterval(() => {
+                    const timeSinceLastSync = Date.now() - lastSyncTime;
+                    if (timeSinceLastSync > 30000 && isOnline) {
+                        setConnectionError('Waarschuwing: Geen recente synchronisatie met Firebase. Controleer je internetverbinding.');
+                    }
+                }, 10000); // Check every 10 seconds
+
+                return () => clearInterval(interval);
+            }, [lastSyncTime, isOnline]);
+
+            const formatTime = (ms) => {
+                const totalSeconds = Math.floor(ms / 1000);
+                const minutes = Math.floor(totalSeconds / 60);
+                const seconds = totalSeconds % 60;
+                const millis = Math.floor((ms % 1000) / 10);
+                return `${minutes}:${seconds.toString().padStart(2, '0')}.${millis.toString().padStart(2, '0')}`;
+            };
+
+            const formatTimeSimple = (ms) => {
+                const totalSeconds = Math.floor(ms / 1000);
+                const minutes = Math.floor(totalSeconds / 60);
+                const seconds = totalSeconds % 60;
+                return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+            };
+
+            // Sort handler for table
+            const handleSort = (column) => {
+                if (sortColumn === column) {
+                    // Toggle direction if same column
+                    setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+                } else {
+                    // New column, default to ascending
+                    setSortColumn(column);
+                    setSortDirection('asc');
+                }
+            };
+
+            // Get sort indicator
+            const getSortIndicator = (column) => {
+                if (sortColumn !== column) return '';
+                return sortDirection === 'asc' ? ' ▲' : ' ▼';
+            };
+
+            // Calculate wait times
+            const getWaitTime = (position) => {
+                if (position === 0) return 'Aan de beurt';
+                if (position === 1) return 'Sta klaar';
+                const minutes = (position - 1) * 2;
+                return `~${minutes} min`;
+            };
+
+            // Firebase error handler wrapper
+            const handleFirebaseOperation = async (operation, errorMessage) => {
+                try {
+                    await operation();
+                    setLastSyncTime(Date.now());
+                    return true;
+                } catch (error) {
+                    console.error('Firebase operation failed:', error);
+                    setConnectionError(`${errorMessage}: ${error.message}`);
+                    alert(`⚠️ ${errorMessage}\n\nFout: ${error.message}\n\nControleer je internetverbinding en probeer opnieuw.`);
+                    return false;
+                }
+            };
+
+            const addRunner = async () => {
+                if (!firstName.trim() || !lastName.trim()) {
+                    alert('Vul beide voornaam en achternaam in!');
+                    return;
+                }
+                
+                const fullName = `${firstName.trim()} ${lastName.trim()}`;
+                
+                const success = await handleFirebaseOperation(async () => {
+                    // Check if runner already exists
+                    let existingRunner = runners.find(r => r.name === fullName);
+                    
+                    if (!existingRunner) {
+                        const runnerDoc = await firestoreWrapper.collection('runners').add({
+                            name: fullName,
+                            firstName: firstName.trim(),
+                            lastName: lastName.trim(),
+                            totalLaps: 0,
+                            totalTime: 0,
+                            addedAt: new Date().toISOString()
+                        });
+                        existingRunner = { id: runnerDoc.id, name: fullName };
+                    }
+
+                    // Add to queue with timestamp and order
+                    const maxOrder = queue.length > 0 ? Math.max(...queue.map(q => q.order || 0)) : -1;
+                    await firestoreWrapper.collection('queue').add({
+                        runnerId: existingRunner.id,
+                        runnerName: fullName,
+                        addedAt: new Date().toISOString(),
+                        order: maxOrder + 1
+                    });
+                }, 'Kan loper niet toevoegen');
+
+                if (success) {
+                    setFirstName('');
+                    setLastName('');
+                }
+            };
+
+            // Helper function to update active runner in Firebase
+            const updateActiveRunnerInFirebase = async (runner, running) => {
+                try {
+                    const now = new Date();
+                    const startTimeISO = running ? now.toISOString() : null;
+                    
+                    if (isFirebaseConfigured) {
+                        const snapshot = await db.collection('activeRunner').get();
+                        const data = {
+                            runner: runner,
+                            isRunning: running,
+                            startTime: startTimeISO
+                        };
+                        
+                        if (snapshot.empty) {
+                            await db.collection('activeRunner').add(data);
+                        } else {
+                            await db.collection('activeRunner').doc(snapshot.docs[0].id).set(data);
+                        }
+                        
+                        if (running) {
+                            console.log('⏱️ Timer gestart:', {
+                                runner: runner,
+                                startTime: startTimeISO,
+                                timestamp: now.getTime()
+                            });
+                        }
+                        
+                        if (running) {
+                            console.log('⏱️ Timer gestart:', {
+                                runner: runner,
+                                startTime: startTimeISO,
+                                timestamp: now.getTime()
+                            });
+                        }
+                    } else {
+                        // For demo mode, also update via wrapper
+                        const demoData = {
+                            runner: runner,
+                            isRunning: running,
+                            startTime: startTimeISO
+                        };
+                        
+                        if (demoStorage.activeRunner.length === 0) {
+                            await firestoreWrapper.collection('activeRunner').add(demoData);
+                        } else {
+                            await firestoreWrapper.collection('activeRunner').doc('0').set(demoData);
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error updating active runner:', error);
+                }
+            };
+
+            const clearActiveRunnerInFirebase = async () => {
+                try {
+                    if (isFirebaseConfigured) {
+                        const snapshot = await db.collection('activeRunner').get();
+                        for (const doc of snapshot.docs) {
+                            await doc.ref.delete();
+                        }
+                    } else {
+                        // For demo mode
+                        demoStorage.activeRunner = [];
+                        firestoreWrapper._notifyListeners('activeRunner');
+                    }
+                } catch (error) {
+                    console.error('Error clearing active runner:', error);
+                }
+            };
+
+            const nextRunner = async () => {
+                if (!activeRunner) {
+                    // Start first runner
+                    if (!queue.length) {
+                        alert('Geen lopers in de wachtrij!');
+                        return;
+                    }
+                    
+                    // Update local state
+                    setActiveRunner(queue[0]);
+                    setIsRunning(true);
+                    setElapsedTime(0);
+                    
+                    // Save to Firebase for display sync
+                    await updateActiveRunnerInFirebase(queue[0], true);
+                } else {
+                    // Save current and start next
+                    await saveLap(elapsedTime, true);
+                }
+            };
+
+            const stopWithoutNext = async () => {
+                await saveLap(elapsedTime, false);
+            };
+
+            const saveManualTime = () => {
+                const parts = manualTime.split(':');
+                if (parts.length !== 2) {
+                    alert('Gebruik MM:SS formaat (bijv. 3:45)');
+                    return;
+                }
+                const [min, sec] = parts.map(Number);
+                if (isNaN(min) || isNaN(sec)) {
+                    alert('Ongeldige tijd!');
+                    return;
+                }
+                const timeMs = (min * 60 + sec) * 1000;
+                saveLap(timeMs, true);
+                setManualTime('');
+            };
+
+            const saveLap = async (timeMs, startNext = true) => {
+                if (!activeRunner) return;
+
+                const runner = runners.find(r => r.id === activeRunner.runnerId);
+                
+                // Calculate start time (current time minus elapsed time)
+                const finishTime = new Date();
+                const startTime = new Date(finishTime.getTime() - timeMs);
+
+                // Check if this is a personal record
+                const runnerPreviousLaps = laps.filter(l => l.runnerId === activeRunner.runnerId);
+                const previousBest = runnerPreviousLaps.length > 0 ? Math.min(...runnerPreviousLaps.map(l => l.time)) : Infinity;
+                const isPersonalRecord = timeMs < previousBest;
+
+                const success = await handleFirebaseOperation(async () => {
+                    await firestoreWrapper.collection('laps').add({
+                        runnerId: activeRunner.runnerId,
+                        runnerName: activeRunner.runnerName,
+                        time: timeMs,
+                        distance: 515,
+                        timestamp: finishTime.toISOString(),
+                        startTime: startTime.toISOString(),
+                        isPersonalRecord: isPersonalRecord,
+                        lapNumber: runner ? runner.totalLaps + 1 : 1
+                    });
+
+                    if (runner) {
+                        await firestoreWrapper.collection('runners').doc(activeRunner.runnerId).update({
+                            totalLaps: runner.totalLaps + 1,
+                            totalTime: runner.totalTime + timeMs
+                        });
+                    }
+
+                    // Remove current runner from queue
+                    await firestoreWrapper.collection('queue').doc(queue[0].id).delete();
+
+                    // BELANGRIJK: Eerst de actieve runner clearen om synchronisatie problemen te voorkomen
+                    await clearActiveRunnerInFirebase();
+                    
+                    // Korte delay om ervoor te zorgen dat alle devices de clear hebben ontvangen
+                    await new Promise(resolve => setTimeout(resolve, 100));
+
+                    if (startNext && queue.length > 1) {
+                        // Start next runner immediately
+                        setActiveRunner(queue[1]);
+                        setElapsedTime(0);
+                        setIsRunning(true);
+                        
+                        // Update Firebase with next runner (met nieuwe startTime)
+                        await updateActiveRunnerInFirebase(queue[1], true);
+                    } else {
+                        // Stop completely (already cleared above)
+                        setActiveRunner(null);
+                        setElapsedTime(0);
+                        setIsRunning(false);
+                    }
+                }, 'Kan ronde niet opslaan');
+
+                if (!success) {
+                    // If save failed, keep the timer running so data isn't lost
+                    console.error('⚠️ Ronde opslaan mislukt - timer blijft lopen');
+                }
+            };
+
+            const cancelCurrentRun = async () => {
+                if (confirm('Weet je zeker dat je de huidige loop wilt annuleren zonder op te slaan?')) {
+                    setActiveRunner(null);
+                    setElapsedTime(0);
+                    setIsRunning(false);
+                    
+                    // Clear active runner from Firebase
+                    await clearActiveRunnerInFirebase();
+                }
+            };
+
+            const deleteLastLap = async () => {
+                if (laps.length === 0) {
+                    alert('Geen rondes om te verwijderen');
+                    return;
+                }
+
+                if (!confirm('Weet je zeker dat je het laatste ronde wilt verwijderen?')) {
+                    return;
+                }
+
+                const lastLap = laps[laps.length - 1];
+                
+                // Update runner stats
+                const runner = runners.find(r => r.id === lastLap.runnerId);
+                if (runner && runner.totalLaps > 0) {
+                    await firestoreWrapper.collection('runners').doc(lastLap.runnerId).update({
+                        totalLaps: runner.totalLaps - 1,
+                        totalTime: Math.max(0, runner.totalTime - lastLap.time)
+                    });
+                }
+
+                // Delete lap
+                await firestoreWrapper.collection('laps').doc(laps[laps.length - 1].id).delete();
+                
+                alert('Laatste ronde verwijderd!');
+            };
+
+            const deleteLap = async (lap) => {
+                if (!confirm(`Weet je zeker dat je de ronde van ${lap.runnerName} (${formatTimeSimple(lap.time)}) wilt verwijderen?`)) {
+                    return;
+                }
+
+                // Update runner stats
+                const runner = runners.find(r => r.id === lap.runnerId);
+                if (runner && runner.totalLaps > 0) {
+                    await firestoreWrapper.collection('runners').doc(lap.runnerId).update({
+                        totalLaps: runner.totalLaps - 1,
+                        totalTime: Math.max(0, runner.totalTime - lap.time)
+                    });
+                }
+
+                // Delete lap
+                await firestoreWrapper.collection('laps').doc(lap.id).delete();
+                
+                alert('Ronde verwijderd!');
+            };
+
+            const startEditingLap = (lap) => {
+                setEditingLapId(lap.id);
+                // Convert ms to MM:SS format
+                const totalSeconds = Math.floor(lap.time / 1000);
+                const minutes = Math.floor(totalSeconds / 60);
+                const seconds = totalSeconds % 60;
+                setEditingLapTime(`${minutes}:${seconds.toString().padStart(2, '0')}`);
+            };
+
+            const cancelEditingLap = () => {
+                setEditingLapId(null);
+                setEditingLapTime('');
+            };
+
+            const saveEditedLap = async (lap) => {
+                // Parse the time input
+                const parts = editingLapTime.split(':');
+                if (parts.length !== 2) {
+                    alert('Gebruik MM:SS formaat (bijv. 3:45)');
+                    return;
+                }
+                const [min, sec] = parts.map(Number);
+                if (isNaN(min) || isNaN(sec)) {
+                    alert('Ongeldige tijd!');
+                    return;
+                }
+                const newTimeMs = (min * 60 + sec) * 1000;
+
+                if (newTimeMs <= 0) {
+                    alert('Tijd moet groter zijn dan 0!');
+                    return;
+                }
+
+                const oldTimeMs = lap.time;
+                const timeDifference = newTimeMs - oldTimeMs;
+
+                // Update lap time
+                await firestoreWrapper.collection('laps').doc(lap.id).update({
+                    time: newTimeMs
+                });
+
+                // Update runner total time
+                const runner = runners.find(r => r.id === lap.runnerId);
+                if (runner) {
+                    await firestoreWrapper.collection('runners').doc(lap.runnerId).update({
+                        totalTime: Math.max(0, runner.totalTime + timeDifference)
+                    });
+                }
+
+                setEditingLapId(null);
+                setEditingLapTime('');
+                alert('Tijd aangepast!');
+            };
+
+            const removeFromQueue = async (queueItem) => {
+                if (confirm(`${queueItem.runnerName} uit de wachtrij verwijderen?`)) {
+                    await firestoreWrapper.collection('queue').doc(queueItem.id).delete();
+                }
+            };
+
+            const moveRunnerUp = async (index) => {
+                if (index === 0) return; // Already at top
+                
+                const currentRunner = queue[index];
+                const previousRunner = queue[index - 1];
+                
+                // Swap order values
+                await firestoreWrapper.collection('queue').doc(currentRunner.id).update({
+                    addedAt: previousRunner.addedAt
+                });
+                await firestoreWrapper.collection('queue').doc(previousRunner.id).update({
+                    addedAt: currentRunner.addedAt
+                });
+            };
+
+            const moveRunnerDown = async (index) => {
+                if (index === queue.length - 1) return; // Already at bottom
+                
+                const currentRunner = queue[index];
+                const nextRunner = queue[index + 1];
+                
+                // Swap order values
+                await firestoreWrapper.collection('queue').doc(currentRunner.id).update({
+                    addedAt: nextRunner.addedAt
+                });
+                await firestoreWrapper.collection('queue').doc(nextRunner.id).update({
+                    addedAt: currentRunner.addedAt
+                });
+            };
+
+            const unlockAdmin = () => {
+                // Simple password - change this to something secure!
+                if (adminPassword === 'humasol2025') {
+                    setIsAdminUnlocked(true);
+                    setAdminPassword('');
+                } else {
+                    alert('Verkeerd wachtwoord!');
+                }
+            };
+
+            // Export functions
+            const exportToCSV = () => {
+                if (laps.length === 0) {
+                    alert('Geen data om te exporteren');
+                    return;
+                }
+
+                // Create CSV header
+                let csv = 'Naam,Ronde Nummer,Tijd (MM:SS),Tijd (seconden),Start Tijd,Finish Tijd,Afstand (m),Persoonlijk Record,Algemeen Record\n';
+
+                // Sort laps by timestamp
+                const sortedLaps = [...laps].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+
+                // Get overall record time
+                const overallRecordTime = Math.min(...laps.map(l => l.time));
+
+                // Add data rows
+                sortedLaps.forEach((lap, idx) => {
+                    const runner = runners.find(r => r.id === lap.runnerId);
+                    const timeSeconds = (lap.time / 1000).toFixed(2);
+                    const startTime = lap.startTime ? new Date(lap.startTime).toLocaleString('nl-NL') : '-';
+                    const finishTime = new Date(lap.timestamp).toLocaleString('nl-NL');
+                    
+                    // Check if this is overall record
+                    const isOverallRecord = lap.time === overallRecordTime;
+                    
+                    // Check if personal record
+                    const runnerLaps = laps.filter(l => l.runnerId === lap.runnerId);
+                    const runnerBestTime = Math.min(...runnerLaps.map(l => l.time));
+                    const isPersonalRecord = lap.time === runnerBestTime;
+
+                    csv += `"${lap.runnerName}",${idx + 1},${formatTimeSimple(lap.time)},${timeSeconds},"${startTime}","${finishTime}",515,${isPersonalRecord ? 'Ja' : 'Nee'},${isOverallRecord ? 'Ja' : 'Nee'}\n`;
+                });
+
+                // Create download
+                const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement('a');
+                const url = URL.createObjectURL(blob);
+                link.setAttribute('href', url);
+                link.setAttribute('download', `24u_loop_leuven_${new Date().toISOString().split('T')[0]}.csv`);
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            };
+
+            const exportRunnersToCSV = () => {
+                if (runners.length === 0) {
+                    alert('Geen lopers om te exporteren');
+                    return;
+                }
+
+                // Create CSV header
+                let csv = 'Naam,Totaal Rondes,Totale Afstand (km),Totale Tijd (MM:SS),Gemiddelde Tijd (MM:SS),Snelste Tijd (MM:SS)\n';
+
+                // Add data rows
+                runners.forEach(runner => {
+                    const runnerLaps = laps.filter(l => l.runnerId === runner.id);
+                    const totalDistance = (runner.totalLaps * 515) / 1000;
+                    const avgTime = runnerLaps.length ? runnerLaps.reduce((sum, l) => sum + l.time, 0) / runnerLaps.length : 0;
+                    const fastestTime = runnerLaps.length ? Math.min(...runnerLaps.map(l => l.time)) : 0;
+
+                    csv += `"${runner.name}",${runner.totalLaps},${totalDistance.toFixed(2)},${formatTimeSimple(runner.totalTime)},${avgTime ? formatTimeSimple(avgTime) : '--:--'},${fastestTime ? formatTimeSimple(fastestTime) : '--:--'}\n`;
+                });
+
+                // Create download
+                const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement('a');
+                const url = URL.createObjectURL(blob);
+                link.setAttribute('href', url);
+                link.setAttribute('download', `24u_loop_leuven_lopers_${new Date().toISOString().split('T')[0]}.csv`);
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            };
+
+            // Stats
+            const totalLaps = laps.length;
+            const totalDistance = (totalLaps * 515) / 1000;
+            const fastestLap = laps.length ? Math.min(...laps.map(l => l.time)) : 0;
+            const avgLapTime = laps.length ? laps.reduce((sum, l) => sum + l.time, 0) / laps.length : 0;
+
+            const fastestLaps = [...laps].sort((a, b) => a.time - b.time).slice(0, 10);
+            
+            const lapsByRunner = runners.map(runner => ({
+                ...runner,
+                laps: laps.filter(l => l.runnerId === runner.id).length
+            })).sort((a, b) => b.laps - a.laps);
+
+            const avgTimeByRunner = runners.map(runner => {
+                const runnerLaps = laps.filter(l => l.runnerId === runner.id);
+                const avg = runnerLaps.length ? runnerLaps.reduce((sum, l) => sum + l.time, 0) / runnerLaps.length : 0;
+                return { ...runner, avgTime: avg, lapCount: runnerLaps.length };
+            }).filter(r => r.lapCount > 0).sort((a, b) => a.avgTime - b.avgTime);
+
+            // Get most likely runners based on recent activity (last 2 hours)
+            const getMostLikelyRunners = () => {
+                // --- Parameters om te 'tunen' ---
+
+                // Hoeveel minuten heeft iemand nodig om te herstellen?
+                // Na 10 min is de herstelfactor ~63%. Na 20 min ~86%.
+                const FATIGUE_DECAY_MINUTES = 10; 
+
+                // Hoe lang blijft iemand 'aanwezig' na z'n laatste loopje?
+                // Na 60 min is de aanwezigheidsfactor nog ~37%. Na 120 min nog ~13%.
+                const PRESENCE_DECAY_MINUTES = 60;
+
+                // Hoeveel gewicht geef je aan activiteit vs. paraatheid? (moet samen 1.0 zijn)
+                const WEIGHT_ACTIVITY = 0.5;
+                const WEIGHT_READINESS = 0.5;
+
+                // --- Berekening ---
+                
+                const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000);
+                
+                // Filter laps from last 2 hours
+                const recentLaps = laps.filter(lap => new Date(lap.timestamp) > twoHoursAgo);
+                
+                // Count frequency per runner
+                const runnerFrequency = {};
+                recentLaps.forEach(lap => {
+                    if (!runnerFrequency[lap.runnerId]) {
+                        runnerFrequency[lap.runnerId] = {
+                            runnerId: lap.runnerId,
+                            runnerName: lap.runnerName,
+                            count: 0,
+                            lastTime: new Date(lap.timestamp)
+                        };
+                    }
+                    runnerFrequency[lap.runnerId].count++;
+                    const lapTime = new Date(lap.timestamp);
+                    if (lapTime > runnerFrequency[lap.runnerId].lastTime) {
+                        runnerFrequency[lap.runnerId].lastTime = lapTime;
+                    }
+                });
+                
+                const now = Date.now();
+                
+                // Calculate composite score for each runner
+                const runnersWithScore = Object.values(runnerFrequency).map(runner => {
+                    const minutesSinceLastLap = (now - runner.lastTime.getTime()) / (1000 * 60);
+                    
+                    // 1. Activiteitsscore (idem als jouw frequencyScore)
+                    // Beloon lopers die de laatste uren actief waren.
+                    const activityScore = runner.count * 10;
+                    
+                    // 2. Paraatheidsscore (de nieuwe 'recency')
+                    // Dit berekent de "piek": 
+                    
+                    // Factor 1: Herstel (stijgt van 0 naar 1)
+                    // (1 - e^(-t/10)) -> 0 als t=0, stijgt snel.
+                    const recoveryFactor = (1 - Math.exp(-minutesSinceLastLap / FATIGUE_DECAY_MINUTES));
+                    
+                    // Factor 2: Aanwezigheid (daalt van 1 naar 0)
+                    // e^(-t/60) -> 1 als t=0, daalt traag.
+                    const presenceFactor = Math.exp(-minutesSinceLastLap / PRESENCE_DECAY_MINUTES);
+                    
+                    // De 'paraatheid' is de combinatie van beide: je moet hersteld ZIJN én nog aanwezig ZIJN.
+                    // Dit geeft een score die piekt rond 20-30 minuten.
+                    const readinessScore = 100 * recoveryFactor * presenceFactor;
+                    
+                    // 3. Totaalscore
+                    // Een gebalanceerde som van de twee scores.
+                    const totalScore = (activityScore * WEIGHT_ACTIVITY) + (readinessScore * WEIGHT_READINESS);
+                    
+                    return {
+                        ...runner, // Belangrijk: behoudt runnerId, runnerName, count
+                        activityScore,
+                        readinessScore,
+                        totalScore,
+                        minutesSinceLastLap // Handig om te debuggen
+                    };
+                });
+                
+                // Sorteer en neem de top 5
+                const sorted = runnersWithScore.sort((a, b) => b.totalScore - a.totalScore);
+                
+                return sorted.slice(0, 5);
+            };
+
+            // Autocomplete functionality
+            const getNameSuggestions = () => {
+                if (!nameInput.trim()) return [];
+                
+                const input = nameInput.toLowerCase();
+                return runners
+                    .filter(r => r.name.toLowerCase().includes(input))
+                    .sort((a, b) => {
+                        // Prioritize names that start with the input
+                        const aStarts = a.name.toLowerCase().startsWith(input);
+                        const bStarts = b.name.toLowerCase().startsWith(input);
+                        if (aStarts && !bStarts) return -1;
+                        if (!aStarts && bStarts) return 1;
+                        return a.name.localeCompare(b.name);
+                    })
+                    .slice(0, 5);
+            };
+
+            const selectSuggestion = async (runner) => {
+                // Add runner to queue directly
+                const maxOrder = queue.length > 0 ? Math.max(...queue.map(q => q.order || 0)) : -1;
+                await firestoreWrapper.collection('queue').add({
+                    runnerId: runner.id,
+                    runnerName: runner.name,
+                    addedAt: new Date().toISOString(),
+                    order: maxOrder + 1
+                });
+                
+                setNameInput('');
+                setShowSuggestions(false);
+            };
+
+            const handleNameInputChange = (value) => {
+                setNameInput(value);
+                setShowSuggestions(value.trim().length > 0);
+            };
+
+            const nameSuggestions = getNameSuggestions();
+
+            const selectQuickRunner = async (runner) => {
+                // Add runner to queue directly
+                const maxOrder = queue.length > 0 ? Math.max(...queue.map(q => q.order || 0)) : -1;
+                await firestoreWrapper.collection('queue').add({
+                    runnerId: runner.runnerId,
+                    runnerName: runner.runnerName,
+                    addedAt: new Date().toISOString(),
+                    order: maxOrder + 1
+                });
+            };
+
+            const mostLikelyRunners = getMostLikelyRunners();
+
+            // Build UI
+            const navButton = (viewName, icon, label) => h('button', {
+                onClick: () => setView(viewName),
+                className: `flex items-center space-x-2 px-4 py-3 font-medium border-b-2 transition-colors whitespace-nowrap ${
+                    view === viewName 
+                        ? `border-humasol-orange ${darkMode ? 'text-humasol-orange' : 'text-humasol-brown'}` 
+                        : `border-transparent ${darkMode ? 'text-gray-400 hover:text-humasol-orange' : 'text-humasol-gray hover:text-humasol-brown'}`
+                }`
+            }, h(Icon, { name: icon }), h('span', null, label));
+
+            // Helper function for dark mode classes
+            const cardBg = darkMode ? 'bg-gray-800' : 'bg-white';
+            const cardBorder = darkMode ? 'border-gray-700' : 'border-gray-200';
+            const textPrimary = darkMode ? 'text-gray-100' : 'text-gray-900';
+            const textSecondary = darkMode ? 'text-gray-400' : 'text-gray-600';
+            const bgSecondary = darkMode ? 'bg-gray-700' : 'bg-gray-50';
+            const bgHover = darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-50';
+            const borderColor = darkMode ? 'border-gray-600' : 'border-gray-300';
+
+            // Get current date and time
+            const [currentTime, setCurrentTime] = useState(new Date());
+            useEffect(() => {
+                const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+                return () => clearInterval(timer);
+            }, []);
+
+            const formatDateTime = (date) => {
+                const days = ['Zondag', 'Maandag', 'Dinsdag', 'Woensdag', 'Donderdag', 'Vrijdag', 'Zaterdag'];
+                const months = ['januari', 'februari', 'maart', 'april', 'mei', 'juni', 'juli', 'augustus', 'september', 'oktober', 'november', 'december'];
+                
+                const dayName = days[date.getDay()];
+                const day = date.getDate();
+                const month = date.getMonth();
+                const hours = date.getHours().toString().padStart(2, '0');
+                const minutes = date.getMinutes().toString().padStart(2, '0');
+                const seconds = date.getSeconds().toString().padStart(2, '0');
+                
+                return {
+                    date: `${dayName} ${day} ${months[month]}`,
+                    time: `${hours}:${minutes}:${seconds}`
+                };
+            };
+
+            const dateTime = formatDateTime(currentTime);
+
+            return h('div', { 
+                className: `min-h-screen transition-colors ${
+                    darkMode 
+                        ? 'bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900' 
+                        : 'bg-gradient-to-br from-orange-50 to-humasol-beige/30'
+                }` 
+            },
+                // Header (verberg in display fullscreen mode)
+                !isDisplayFullscreen && h('div', { 
+                    className: `shadow-md border-b-4 border-humasol-orange transition-colors ${
+                        darkMode ? 'bg-slate-800' : 'bg-white'
+                    }` 
+                },
+                    h('div', { className: 'max-w-7xl mx-auto px-4 py-4' },
+                        h('div', { className: 'flex items-center justify-between' },
+                            h('div', { className: 'flex items-center gap-4' },
+                                h('div', null,
+                                    h('h1', { 
+                                        className: `text-2xl font-bold transition-colors ${
+                                            darkMode ? 'text-humasol-orange' : 'text-humasol-brown'
+                                        }` 
+                                    }, '24u Loop Leuven'),
+                                    h('p', { 
+                                        className: `text-sm transition-colors ${
+                                            darkMode ? 'text-gray-400' : 'text-humasol-gray'
+                                        }` 
+                                    }, 'Dinsdag 20:00 - Woensdag 20:00')
+                                ),
+                                // Connection status indicator
+                                h('div', { className: 'flex items-center gap-2' },
+                                    h('div', { 
+                                        className: `flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold transition-colors ${
+                                            isOnline 
+                                                ? (darkMode ? 'bg-green-900 text-green-300' : 'bg-green-100 text-green-700')
+                                                : (darkMode ? 'bg-red-900 text-red-300 animate-pulse' : 'bg-red-100 text-red-700 animate-pulse')
+                                        }`,
+                                        title: isOnline ? 'Verbonden met Firebase' : 'Offline - data wordt lokaal opgeslagen'
+                                    },
+                                        h('div', { 
+                                            className: `w-2 h-2 rounded-full ${isOnline ? 'bg-green-500' : 'bg-red-500'}`
+                                        }),
+                                        h('span', null, isOnline ? 'Online' : 'Offline')
+                                    ),
+                                    // Dark mode toggle
+                                    h('button', {
+                                        onClick: () => setDarkMode(!darkMode),
+                                        className: `flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold transition-colors ${
+                                            darkMode 
+                                                ? 'bg-indigo-900 text-indigo-300 hover:bg-indigo-800' 
+                                                : 'bg-indigo-100 text-indigo-700 hover:bg-indigo-200'
+                                        }`,
+                                        title: darkMode ? 'Schakel over naar lichte modus' : 'Schakel over naar donkere modus'
+                                    },
+                                        h('span', { className: 'text-sm' }, darkMode ? '🌙' : '☀️'),
+                                        h('span', null, darkMode ? 'Donker' : 'Licht')
+                                    ),
+                                    // PWA Install button
+                                    showInstallPrompt && h('button', {
+                                        onClick: handleInstallClick,
+                                        className: `flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold transition-colors ${
+                                            darkMode 
+                                                ? 'bg-humasol-orange/20 text-humasol-orange hover:bg-humasol-orange/30' 
+                                                : 'bg-humasol-orange text-white hover:bg-humasol-brown'
+                                        }`,
+                                        title: 'Installeer app op je apparaat'
+                                    },
+                                        h('span', { className: 'text-sm' }, '📱'),
+                                        h('span', null, 'Installeer')
+                                    )
+                                )
+                            ),
+                            h('div', { className: 'flex items-center gap-4' },
+                                h('img', { 
+                                    src: 'humasol_logo.png', 
+                                    alt: 'Humasol Logo',
+                                    className: 'h-20 w-auto object-contain'
+                                })
+                            ),
+                            h('div', { className: 'text-center' },
+                                h('div', { className: 'text-5xl font-bold text-humasol-orange' }, totalLaps),
+                                h('div', { 
+                                    className: `text-lg font-semibold transition-colors ${
+                                        darkMode ? 'text-humasol-orange' : 'text-humasol-brown'
+                                    }` 
+                                }, 'Totaal Rondes'),
+                                h('div', { 
+                                    className: `text-sm transition-colors ${
+                                        darkMode ? 'text-gray-400' : 'text-humasol-gray'
+                                    }` 
+                                }, `${totalDistance.toFixed(2)} km`)
+                            )
+                        )
+                    )
+                ),
+
+                // Navigation (verberg in display fullscreen mode)
+                !isDisplayFullscreen && h('div', { 
+                    className: `border-b sticky top-0 z-10 shadow-sm transition-colors ${
+                        darkMode ? 'bg-slate-800 border-slate-700' : 'bg-white'
+                    }` 
+                },
+                    h('div', { className: 'max-w-7xl mx-auto px-4' },
+                        h('div', { className: 'flex space-x-1 overflow-x-auto' },
+                            navButton('timer', 'timer', 'Chronometer'),
+                            navButton('queue', 'users', `Wachtrij (${queue.length})`),
+                            navButton('leaderboard', 'trophy', 'Rankings'),
+                            navButton('stats', 'chart', 'Statistieken'),
+                            navButton('display', 'flag', 'Display'),
+                            navButton('admin', 'shield', 'Admin')
+                        )
+                    )
+                ),
+
+                // Content
+                h('div', { className: isDisplayFullscreen ? '' : 'max-w-7xl mx-auto px-4 py-6' },
+                    // Connection error warning
+                    !isDisplayFullscreen && connectionError && h('div', { 
+                        className: 'mb-6 bg-red-100 border-4 border-red-500 rounded-lg p-4 shadow-lg sticky top-20 z-20'
+                    },
+                        h('div', { className: 'flex items-center justify-between' },
+                            h('div', { className: 'flex items-center gap-3' },
+                                h('div', { className: 'text-4xl' }, '🔌'),
+                                h('div', null,
+                                    h('h3', { className: 'text-xl font-bold text-red-700' }, 'Verbindingsprobleem'),
+                                    h('p', { className: 'text-red-600 text-sm' }, connectionError)
+                                )
+                            ),
+                            h('button', {
+                                onClick: () => setConnectionError(null),
+                                className: 'text-red-700 hover:text-red-900 font-bold text-2xl px-2',
+                                title: 'Verberg melding'
+                            }, '×')
+                        )
+                    ),
+
+                    // Low queue warning (shown on all views except display fullscreen)
+                    !isDisplayFullscreen && showLowQueueWarning && h('div', { 
+                        className: 'mb-6 bg-orange-100 border-4 border-orange-500 rounded-lg p-4 animate-pulse shadow-lg sticky top-20 z-20'
+                    },
+                        h('div', { className: 'flex items-center justify-between' },
+                            h('div', { className: 'flex items-center gap-3' },
+                                h('div', { className: 'text-4xl' }, '⚠️'),
+                                h('div', null,
+                                    h('h3', { className: 'text-xl font-bold text-orange-700' }, 
+                                        queue.length === 0 ? 'WACHTRIJ IS LEEG!' : 'WACHTRIJ BIJNA LEEG!'
+                                    ),
+                                    h('p', { className: 'text-orange-600 font-semibold' }, 
+                                        queue.length === 0 
+                                            ? 'Er staan geen lopers meer klaar. Voeg mensen toe!' 
+                                            : `Nog maar ${queue.length} ${queue.length === 1 ? 'loper' : 'lopers'} in de wachtrij. Vraag mensen om zich aan te melden!`
+                                    )
+                                )
+                            ),
+                            h('button', {
+                                onClick: () => setShowLowQueueWarning(false),
+                                className: 'text-orange-700 hover:text-orange-900 font-bold text-2xl px-2',
+                                title: 'Verberg waarschuwing'
+                            }, '×')
+                        )
+                    ),
+
+                    // Timer View
+                    view === 'timer' && h('div', { className: 'space-y-6' },
+                        h('div', { className: 'bg-white rounded-lg shadow-lg p-6' },
+                            h('h2', { className: 'text-lg font-semibold mb-4 flex items-center' },
+                                h(Icon, { name: 'flag', className: 'w-5 h-5 mr-2 text-humasol-orange' }),
+                                'Actieve Loper'
+                            ),
+                            activeRunner ? h('div', { className: 'text-center' },
+                                h('div', { className: 'mb-6' },
+                                    h('div', { className: 'text-sm text-gray-500 mb-1' }, 'NU AAN DE BEURT'),
+                                    h('div', { className: 'flex items-center justify-center gap-3 mb-2' },
+                                        h('div', { className: 'text-4xl font-bold text-humasol-brown' }, activeRunner.runnerName),
+                                        (() => {
+                                            const runnerLaps = laps.filter(l => l.runnerId === activeRunner.runnerId);
+                                            if (runnerLaps.length === 0) {
+                                                return h('span', { 
+                                                    className: 'px-3 py-1 bg-humasol-orange text-white text-sm font-bold rounded-full animate-pulse'
+                                                }, 'EERSTE RONDE');
+                                            }
+                                            return null;
+                                        })()
+                                    ),
+                                    h('div', { className: 'flex gap-4 justify-center text-sm text-gray-600' },
+                                        h('span', null, (() => {
+                                            const runner = runners.find(r => r.id === activeRunner.runnerId);
+                                            const totalLaps = runner ? runner.totalLaps : 0;
+                                            return `${totalLaps} ${totalLaps === 1 ? 'ronde' : 'rondes'}`;
+                                        })()),
+                                        h('span', null, '•'),
+                                        h('span', { className: 'font-mono font-semibold text-green-600' }, (() => {
+                                            const runnerLaps = laps.filter(l => l.runnerId === activeRunner.runnerId);
+                                            if (runnerLaps.length === 0) return 'Eerste ronde';
+                                            const bestTime = Math.min(...runnerLaps.map(l => l.time));
+                                            return `Beste: ${formatTimeSimple(bestTime)}`;
+                                        })())
+                                    )
+                                ),
+                                h('div', { className: 'text-6xl font-mono font-bold text-gray-900 my-8' }, formatTime(elapsedTime)),
+                                
+                                // Show next runner or warning if none
+                                queue.length > 1 ? h('div', { className: 'mb-6 p-4 bg-yellow-50 border-2 border-yellow-300 rounded-lg' },
+                                    h('div', { className: 'text-sm text-yellow-700 font-semibold mb-1' }, 'VOLGENDE LOPER'),
+                                    h('div', { className: 'flex items-center justify-center gap-3 mb-1' },
+                                        h('div', { className: 'text-2xl font-bold text-yellow-800' }, queue[1].runnerName),
+                                        (() => {
+                                            const runnerLaps = laps.filter(l => l.runnerId === queue[1].runnerId);
+                                            if (runnerLaps.length === 0) {
+                                                return h('span', { 
+                                                    className: 'px-2 py-1 bg-humasol-orange text-white text-xs font-bold rounded-full'
+                                                }, 'EERSTE RONDE');
+                                            }
+                                            return null;
+                                        })()
+                                    ),
+                                    h('div', { className: 'text-sm text-yellow-600 text-center mt-2' }, 
+                                        `Nog ${queue.length - 1} ${queue.length - 1 === 1 ? 'loper' : 'lopers'} in de wachtrij`
+                                    )
+                                ) : h('div', { className: 'mb-6 p-4 bg-orange-100 border-2 border-humasol-orange rounded-lg' },
+                                    h('div', { className: 'text-center' },
+                                        h('div', { className: 'text-3xl mb-2' }, '⚠️'),
+                                        h('div', { className: 'text-lg font-bold text-humasol-brown' }, 'GEEN VOLGENDE LOPER!'),
+                                        h('div', { className: 'text-sm text-humasol-gray mt-1' }, 'Denk eraan om meer mensen toe te voegen')
+                                    )
+                                ),
+
+                                h('div', { className: 'flex flex-col sm:flex-row gap-4 mb-4' },
+                                    h('button', {
+                                        onClick: nextRunner,
+                                        className: 'flex-[2] sm:flex-[2] bg-green-600 hover:bg-green-700 text-white font-semibold py-5 sm:py-4 rounded-lg flex items-center justify-center space-x-2 text-lg sm:text-base'
+                                    },
+                                        h(Icon, { name: 'arrowRight', className: 'w-6 h-6' }),
+                                        h('span', null, 'Volgende Loper')
+                                    ),
+                                    h('button', {
+                                        onClick: stopWithoutNext,
+                                        className: 'flex-1 sm:flex-1 bg-red-600 hover:bg-red-700 text-white font-semibold py-4 rounded-lg'
+                                    }, 'Stop Zonder Volgende')
+                                ),
+                                h('button', {
+                                    onClick: cancelCurrentRun,
+                                    className: 'w-full bg-gray-400 hover:bg-gray-500 text-white py-2 rounded text-sm'
+                                }, 'Annuleer Zonder Opslaan')
+                            ) : h('div', { className: 'text-center py-8' },
+                                h('div', { className: 'text-gray-400 mb-4' }, 'Geen actieve loper'),
+                                queue.length > 0 ? h('div', null,
+                                    h('div', { className: 'text-lg mb-4' }, 'Volgende: ', h('strong', null, queue[0].runnerName)),
+                                    h('button', {
+                                        onClick: nextRunner,
+                                        className: 'w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-4 rounded-lg flex items-center justify-center space-x-2'
+                                    },
+                                        h(Icon, { name: 'play', className: 'w-6 h-6' }),
+                                        h('span', null, 'Start Eerste Loper')
+                                    )
+                                ) : h('div', { className: 'text-gray-500' }, 'Voeg lopers toe')
+                            )
+                        ),
+                        
+                        h('div', { className: 'bg-white rounded-lg shadow-lg p-6' },
+                            h('h2', { className: 'text-lg font-semibold mb-4' }, 'Handmatige Tijd'),
+                            h('div', { className: 'flex space-x-4' },
+                                h('input', {
+                                    type: 'text',
+                                    placeholder: 'MM:SS',
+                                    value: manualTime,
+                                    onChange: e => setManualTime(e.target.value),
+                                    className: 'flex-1 px-4 py-3 border rounded-lg'
+                                }),
+                                h('button', {
+                                    onClick: saveManualTime,
+                                    disabled: !activeRunner,
+                                    className: 'px-6 py-3 bg-humasol-orange hover:bg-humasol-brown disabled:bg-gray-300 text-white rounded-lg font-semibold'
+                                }, 'Opslaan')
+                            )
+                        ),
+
+                        h('div', { className: 'bg-white rounded-lg shadow-lg p-6' },
+                            h('h2', { className: 'text-lg font-semibold mb-4' }, 'Laatste Rondes'),
+                            laps.length === 0 ? h('div', { className: 'text-center text-gray-400 py-8' }, 'Nog geen rondes') :
+                            h('div', { className: 'space-y-2' },
+                                [...laps].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)).slice(0, 5).map((lap, idx) => {
+                                    const runner = runners.find(r => r.id === lap.runnerId);
+                                    const totalLaps = runner ? runner.totalLaps : 0;
+                                    
+                                    // Check for overall record (fastest ever)
+                                    const allTimes = laps.map(l => l.time);
+                                    const isOverallRecord = lap.time === Math.min(...allTimes);
+                                    
+                                    // Check for record in last hour
+                                    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+                                    const recentLaps = laps.filter(l => new Date(l.timestamp) > oneHourAgo);
+                                    const recentTimes = recentLaps.map(l => l.time);
+                                    const isHourlyRecord = recentTimes.length > 0 && lap.time === Math.min(...recentTimes) && new Date(lap.timestamp) > oneHourAgo;
+                                    
+                                    // Check for personal record
+                                    const runnerLaps = laps.filter(l => l.runnerId === lap.runnerId);
+                                    const runnerTimes = runnerLaps.map(l => l.time);
+                                    const isPersonalRecord = lap.isPersonalRecord || (runnerTimes.length > 0 && lap.time === Math.min(...runnerTimes));
+                                    
+                                    // Determine badge and styling
+                                    const isRecord = isOverallRecord || isHourlyRecord;
+                                    const showPersonalRecord = isPersonalRecord && !isRecord;
+                                    
+                                    return h('div', { 
+                                        key: idx, 
+                                        className: `p-4 rounded-lg ${
+                                            isOverallRecord ? 'bg-gradient-to-r from-yellow-100 via-yellow-50 to-orange-100 border-4 border-yellow-400 shadow-lg animate-pulse' : 
+                                            isHourlyRecord ? 'bg-green-50 border-2 border-green-300' : 
+                                            showPersonalRecord ? 'bg-blue-50 border-2 border-blue-200' : 
+                                            'bg-gray-50'
+                                        }`
+                                    },
+                                        h('div', { className: 'flex justify-between items-center mb-1' },
+                                            h('div', { className: 'flex items-center gap-2 flex-wrap' },
+                                                h('span', { className: 'font-semibold text-lg' }, lap.runnerName),
+                                                h('span', { className: 'text-sm text-gray-500' }, `(${totalLaps} ${totalLaps === 1 ? 'ronde' : 'rondes'})`),
+                                                isOverallRecord && h('span', { 
+                                                    className: 'px-3 py-1.5 bg-gradient-to-r from-yellow-500 to-orange-500 text-white text-sm font-extrabold rounded-lg uppercase shadow-md'
+                                                }, '🏆 ALGEMEEN RECORD'),
+                                                isHourlyRecord && !isOverallRecord && h('span', { 
+                                                    className: 'px-2 py-1 bg-green-600 text-white text-xs font-bold rounded uppercase'
+                                                }, '⚡ Uur Record'),
+                                                showPersonalRecord && h('span', { 
+                                                    className: 'px-2 py-1 bg-blue-500 text-white text-xs font-bold rounded'
+                                                }, '👤 Persoonlijk Record')
+                                            ),
+                                            h('span', { className: 'text-humasol-orange font-mono font-bold text-xl' }, formatTimeSimple(lap.time))
+                                        ),
+                                        h('div', { className: 'text-sm text-gray-600' },
+                                            h('span', null, 
+                                                `Gestart: ${lap.startTime ? new Date(lap.startTime).toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : '-'}`
+                                            )
+                                        )
+                                    );
+                                })
+                            )
+                        )
+                    ),
+
+                    // Queue View
+                    view === 'queue' && h('div', { className: 'space-y-6' },
+                        // Active runner display (same as Display view)
+                        activeRunner && isRunning && h('div', { className: 'bg-white rounded-lg shadow-lg border-4 border-orange-500 p-6 animate-pulse' },
+                            h('div', { className: 'flex items-center justify-between' },
+                                h('div', null,
+                                    h('div', { className: 'text-sm font-semibold text-orange-600 uppercase tracking-wide mb-1' }, '🏃 NU AAN HET LOPEN'),
+                                    h('div', { className: 'text-3xl font-bold text-gray-800' }, activeRunner.runnerName)
+                                ),
+                                h('div', { className: 'text-right' },
+                                    h('div', { className: 'text-sm text-gray-600 mb-1' }, 'Huidige Tijd'),
+                                    h('div', { className: 'text-4xl font-mono font-bold text-orange-600' }, formatTime(elapsedTime))
+                                )
+                            )
+                        ),
+
+                        h('div', { className: 'bg-white rounded-lg shadow-lg p-6' },
+                            h('h2', { className: 'text-lg font-semibold mb-4 text-gray-900' }, `Wachtrij (${queue.length})`),
+                            queue.length === 0 ? h('div', { className: 'text-center text-gray-400 py-8' }, 'Geen lopers') :
+                            h('div', { className: 'space-y-2' },
+                                // Filter out the active runner from the queue display
+                                queue.filter((runner, idx) => !(activeRunner && isRunning && idx === 0)).map((runner, idx) => {
+                                    // Adjust index to account for active runner being hidden
+                                    const displayIdx = activeRunner && isRunning ? idx + 1 : idx;
+                                    
+                                    return h('div', {
+                                        key: idx,
+                                        className: `flex justify-between items-center p-4 rounded-lg ${
+                                            displayIdx === 0 ? 'bg-green-50 border-2 border-green-500' : 
+                                            displayIdx === 1 ? 'bg-yellow-50 border-2 border-yellow-400' : 
+                                            'bg-gray-50'
+                                        }`
+                                    },
+                                        h('div', { className: 'flex items-center space-x-4 flex-1' },
+                                            h('div', { 
+                                                className: `text-xl font-bold ${
+                                                    displayIdx === 0 ? 'text-green-600' : 
+                                                    displayIdx === 1 ? 'text-yellow-600' : 
+                                                    'text-gray-400'
+                                                }` 
+                                            }, displayIdx + 1),
+                                            h('div', null,
+                                                h('div', { className: 'font-semibold text-gray-900' }, runner.runnerName),
+                                                h('div', { 
+                                                    className: `text-sm ${
+                                                        displayIdx === 0 ? 'text-green-600 font-semibold' : 
+                                                        displayIdx === 1 ? 'text-yellow-600 font-semibold' : 
+                                                        'text-gray-500'
+                                                    }` 
+                                                }, getWaitTime(displayIdx))
+                                            )
+                                        ),
+                                        h('div', { className: 'flex items-center space-x-2' },
+                                            h('button', {
+                                                onClick: () => moveRunnerUp(activeRunner && isRunning ? idx + 1 : idx),
+                                                disabled: displayIdx === 0,
+                                                className: 'p-2 bg-blue-500 hover:bg-blue-600 text-white rounded disabled:bg-gray-300 disabled:cursor-not-allowed',
+                                                title: 'Verplaats omhoog'
+                                            }, h(Icon, { name: 'arrowUp', className: 'w-4 h-4' })),
+                                            h('button', {
+                                                onClick: () => moveRunnerDown(activeRunner && isRunning ? idx + 1 : idx),
+                                                disabled: displayIdx === queue.length - (activeRunner && isRunning ? 2 : 1),
+                                                className: 'p-2 bg-blue-500 hover:bg-blue-600 text-white rounded disabled:bg-gray-300 disabled:cursor-not-allowed',
+                                                title: 'Verplaats omlaag'
+                                            }, h(Icon, { name: 'arrowDown', className: 'w-4 h-4' })),
+                                            h('button', {
+                                                onClick: () => removeFromQueue(runner),
+                                                className: 'p-2 bg-red-500 hover:bg-red-600 text-white rounded',
+                                                title: 'Verwijder uit wachtrij'
+                                            }, h(Icon, { name: 'trash', className: 'w-4 h-4' }))
+                                        )
+                                    );
+                                })
+                            )
+                        ),
+
+                        h('div', { className: 'bg-white rounded-lg shadow-lg p-6' },
+                            h('h2', { className: 'text-lg font-semibold mb-4 text-gray-900' }, 'Nieuwe Loper Toevoegen'),
+                            
+                            // Name input with autocomplete (EERST)
+                            h('div', { className: 'mb-4 relative' },
+                                h('label', { className: 'block text-sm font-medium text-gray-700 mb-2' }, 'Zoek of voeg naam toe'),
+                                h('input', {
+                                    type: 'text',
+                                    placeholder: 'Typ naam...',
+                                    value: nameInput,
+                                    onChange: e => handleNameInputChange(e.target.value),
+                                    onBlur: () => setTimeout(() => setShowSuggestions(false), 200),
+                                    onFocus: () => nameInput.trim() && setShowSuggestions(true),
+                                    className: 'w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-indigo-500 focus:outline-none'
+                                }),
+                                // Autocomplete suggestions dropdown
+                                showSuggestions && nameSuggestions.length > 0 && h('div', { 
+                                    className: 'absolute z-10 w-full mt-1 bg-white border-2 border-humasol-orange rounded-lg shadow-lg max-h-60 overflow-auto'
+                                },
+                                    nameSuggestions.map((runner, idx) =>
+                                        h('button', {
+                                            key: idx,
+                                            onClick: () => selectSuggestion(runner),
+                                            className: 'w-full px-4 py-3 text-left hover:bg-orange-50 border-b border-gray-200 last:border-b-0 transition-colors'
+                                        },
+                                            h('div', { className: 'flex items-center justify-between' },
+                                                h('span', { className: 'font-semibold text-humasol-brown' }, runner.name),
+                                                h('span', { className: 'text-xs text-gray-500' }, (() => {
+                                                    const runnerLaps = laps.filter(l => l.runnerId === runner.id);
+                                                    return `${runnerLaps.length} ${runnerLaps.length === 1 ? 'ronde' : 'rondes'}`;
+                                                })())
+                                            )
+                                        )
+                                    )
+                                )
+                            ),
+
+                            // OR divider
+                            h('div', { className: 'relative mb-4' },
+                                h('div', { className: 'absolute inset-0 flex items-center' },
+                                    h('div', { className: 'w-full border-t border-gray-300' })
+                                ),
+                                h('div', { className: 'relative flex justify-center text-sm' },
+                                    h('span', { className: 'px-2 bg-white text-gray-500' }, 'of voeg nieuwe loper toe')
+                                )
+                            ),
+
+                            // Add new runner form
+                            h('div', { className: 'grid grid-cols-2 gap-4 mb-4' },
+                                h('input', {
+                                    type: 'text',
+                                    placeholder: 'Voornaam',
+                                    value: firstName,
+                                    onChange: e => setFirstName(e.target.value),
+                                    className: 'px-4 py-3 border rounded-lg'
+                                }),
+                                h('input', {
+                                    type: 'text',
+                                    placeholder: 'Achternaam',
+                                    value: lastName,
+                                    onChange: e => setLastName(e.target.value),
+                                    onKeyPress: e => e.key === 'Enter' && addRunner(),
+                                    className: 'px-4 py-3 border rounded-lg'
+                                })
+                            ),
+                            h('button', {
+                                onClick: addRunner,
+                                className: 'w-full px-6 py-3 bg-humasol-orange hover:bg-humasol-brown text-white rounded-lg flex items-center justify-center space-x-2 mb-4 font-semibold'
+                            },
+                                h(Icon, { name: 'plus', className: 'w-5 h-5' }),
+                                h('span', null, 'Toevoegen')
+                            ),
+
+                            // Quick selection (NU ONDERAAN)
+                            mostLikelyRunners.length > 0 && h('div', { className: 'relative mb-4' },
+                                h('div', { className: 'absolute inset-0 flex items-center' },
+                                    h('div', { className: 'w-full border-t border-gray-300' })
+                                ),
+                                h('div', { className: 'relative flex justify-center text-sm' },
+                                    h('span', { className: 'px-2 bg-white text-gray-500' }, 'of snelle selectie')
+                                )
+                            ),
+
+                            mostLikelyRunners.length > 0 && h('div', null,
+                                h('label', { className: 'block text-sm font-medium text-gray-700 mb-2' }, '⚡ Recent Actief'),
+                                h('div', { className: 'grid grid-cols-1 gap-2' },
+                                    mostLikelyRunners.map((runner, idx) =>
+                                        h('button', {
+                                            key: idx,
+                                            onClick: () => selectQuickRunner(runner),
+                                            className: 'w-full px-4 py-3 bg-green-50 hover:bg-green-100 border-2 border-green-200 hover:border-green-400 rounded-lg text-left transition-colors'
+                                        },
+                                            h('div', { className: 'flex items-center justify-between' },
+                                                h('span', { className: 'font-semibold text-green-800' }, runner.runnerName),
+                                                h('span', { className: 'text-sm text-green-600' }, `${runner.count}x recent`)
+                                            )
+                                        )
+                                    )
+                                )
+                            )
+                        )
+                    ),
+
+                    // Leaderboard View
+                    view === 'leaderboard' && h('div', { className: 'space-y-6' },
+                        h('div', { className: 'bg-white rounded-lg shadow-lg p-6' },
+                            h('h2', { className: 'text-lg font-semibold mb-4' }, '🏆 Snelste Rondes'),
+                            fastestLaps.length === 0 ? h('div', { className: 'text-center text-gray-400 py-8' }, 'Nog geen data') :
+                            h('div', { className: 'space-y-2' },
+                                fastestLaps.map((lap, idx) =>
+                                    h('div', { key: idx, className: 'flex justify-between items-center p-3 bg-gray-50 rounded-lg' },
+                                        h('div', { className: 'flex-1' },
+                                            h('div', { className: 'flex items-center gap-2' },
+                                                h('span', { className: `font-bold ${idx < 3 ? 'text-humasol-orange' : 'text-gray-400'}` }, `#${idx + 1}`),
+                                                h('span', { className: 'font-medium' }, lap.runnerName)
+                                            ),
+                                            h('div', { className: 'text-xs text-gray-500 ml-7 mt-1' },
+                                                `Gelopen om ${new Date(lap.timestamp).toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' })}`
+                                            )
+                                        ),
+                                        h('span', { className: 'text-humasol-orange font-mono font-semibold text-lg' }, formatTimeSimple(lap.time))
+                                    )
+                                )
+                            )
+                        ),
+
+                        h('div', { className: 'bg-white rounded-lg shadow-lg p-6' },
+                            h('h2', { className: 'text-lg font-semibold mb-4' }, '🏃 Meeste Rondes'),
+                            lapsByRunner.length === 0 ? h('div', { className: 'text-center text-gray-400 py-8' }, 'Nog geen data') :
+                            h('div', { className: 'space-y-2' },
+                                lapsByRunner.map((runner, idx) =>
+                                    h('div', { key: idx, className: 'flex justify-between p-3 bg-gray-50 rounded-lg' },
+                                        h('div', null,
+                                            h('span', { className: `font-bold mr-3 ${idx < 3 ? 'text-humasol-brown' : 'text-gray-400'}` }, `#${idx + 1}`),
+                                            h('span', null, runner.name)
+                                        ),
+                                        h('span', { className: 'text-humasol-brown font-bold' }, `${runner.laps} rondes`)
+                                    )
+                                )
+                            )
+                        ),
+
+                        h('div', { className: 'bg-white rounded-lg shadow-lg p-6' },
+                            h('h2', { className: 'text-lg font-semibold mb-4' }, '⚡ Beste Gemiddelde'),
+                            avgTimeByRunner.length === 0 ? h('div', { className: 'text-center text-gray-400 py-8' }, 'Nog geen data') :
+                            h('div', { className: 'space-y-2' },
+                                avgTimeByRunner.map((runner, idx) =>
+                                    h('div', { key: idx, className: 'flex justify-between p-3 bg-gray-50 rounded-lg' },
+                                        h('div', null,
+                                            h('span', { className: `font-bold mr-3 ${idx < 3 ? 'text-humasol-orange' : 'text-gray-400'}` }, `#${idx + 1}`),
+                                            h('span', null, runner.name),
+                                            h('span', { className: 'text-sm text-gray-500 ml-2' }, `(${runner.lapCount} rondes)`)
+                                        ),
+                                        h('span', { className: 'text-humasol-orange font-mono font-semibold' }, formatTimeSimple(runner.avgTime))
+                                    )
+                                )
+                            )
+                        )
+                    ),
+
+                    // Stats View
+                    view === 'stats' && h('div', { className: 'space-y-6' },
+                        h('div', { className: 'grid grid-cols-2 md:grid-cols-4 gap-4' },
+                            [
+                                { label: 'Totaal Rondes', value: totalLaps, color: 'indigo' },
+                                { label: 'Totale Afstand', value: `${totalDistance.toFixed(2)} km`, color: 'indigo' },
+                                { label: 'Snelste Ronde', value: fastestLap ? formatTimeSimple(fastestLap) : '--:--', color: 'green' },
+                                { label: 'Gemiddelde Tijd', value: avgLapTime ? formatTimeSimple(avgLapTime) : '--:--', color: 'blue' }
+                            ].map((stat, idx) =>
+                                h('div', { key: idx, className: 'bg-white rounded-lg shadow-lg p-6' },
+                                    h('div', { className: 'text-sm text-gray-600 mb-1' }, stat.label),
+                                    h('div', { className: `text-3xl font-bold text-${stat.color}-600` }, stat.value)
+                                )
+                            )
+                        ),
+
+                        h('div', { className: 'bg-white rounded-lg shadow-lg p-6 overflow-x-auto' },
+                            h('button', {
+                                onClick: () => setShowAllRunners(!showAllRunners),
+                                className: 'group w-full flex items-center justify-between mb-4 text-left rounded-lg px-4 py-3 border-2 border-transparent hover:border-humasol-orange hover:bg-orange-50 cursor-pointer transition-colors'
+                            },
+                                h('h2', { className: 'text-lg font-semibold transition-colors group-hover:text-humasol-brown' }, `Alle Lopers (${runners.length})`),
+                                h('span', { className: 'text-2xl text-gray-700 transition-colors group-hover:text-humasol-orange' }, showAllRunners ? '▲' : '▼')
+                            ),
+                            
+                            showAllRunners && h('div', null,
+                                // Search box
+                                h('div', { className: 'mb-4' },
+                                    h('input', {
+                                        type: 'text',
+                                        placeholder: 'Zoek op naam...',
+                                        value: runnerSearchQuery,
+                                        onChange: e => setRunnerSearchQuery(e.target.value),
+                                        className: 'w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-humasol-orange focus:outline-none'
+                                    })
+                                ),
+                                
+                                // Runners table
+                                (() => {
+                                    // Filter runners based on search query
+                                    const filteredRunners = runners.filter(runner => {
+                                        if (!runnerSearchQuery.trim()) return true;
+                                        return runner.name.toLowerCase().includes(runnerSearchQuery.toLowerCase());
+                                    });
+                                    
+                                    // Prepare data with all values
+                                    const runnersWithData = filteredRunners.map(runner => {
+                                        const runnerLaps = laps.filter(l => l.runnerId === runner.id);
+                                        const avgTime = runnerLaps.length ? runnerLaps.reduce((sum, l) => sum + l.time, 0) / runnerLaps.length : 0;
+                                        const fastestTime = runnerLaps.length ? Math.min(...runnerLaps.map(l => l.time)) : 0;
+                                        const distance = (runnerLaps.length * 515) / 1000;
+                                        
+                                        return {
+                                            runner,
+                                            laps: runnerLaps.length,
+                                            distance,
+                                            avgTime,
+                                            fastestTime
+                                        };
+                                    });
+                                    
+                                    // Sort based on selected column and direction
+                                    const sorted = [...runnersWithData].sort((a, b) => {
+                                        let compareValue = 0;
+                                        
+                                        switch(sortColumn) {
+                                            case 'name':
+                                                compareValue = a.runner.name.localeCompare(b.runner.name);
+                                                break;
+                                            case 'laps':
+                                                compareValue = a.laps - b.laps;
+                                                break;
+                                            case 'distance':
+                                                compareValue = a.distance - b.distance;
+                                                break;
+                                            case 'avgTime':
+                                                // Handle 0 values (no laps) - put them at the end
+                                                if (a.avgTime === 0 && b.avgTime === 0) compareValue = 0;
+                                                else if (a.avgTime === 0) compareValue = 1;
+                                                else if (b.avgTime === 0) compareValue = -1;
+                                                else compareValue = a.avgTime - b.avgTime;
+                                                break;
+                                            case 'fastestTime':
+                                                // Handle 0 values (no laps) - put them at the end
+                                                if (a.fastestTime === 0 && b.fastestTime === 0) compareValue = 0;
+                                                else if (a.fastestTime === 0) compareValue = 1;
+                                                else if (b.fastestTime === 0) compareValue = -1;
+                                                else compareValue = a.fastestTime - b.fastestTime;
+                                                break;
+                                        }
+                                        
+                                        return sortDirection === 'asc' ? compareValue : -compareValue;
+                                    });
+                                    
+                                    return h('div', { className: 'overflow-x-auto' },
+                                        sorted.length === 0 ? 
+                                            h('div', { className: 'text-center text-gray-400 py-8' }, 
+                                                runnerSearchQuery.trim() ? 'Geen lopers gevonden' : 'Nog geen lopers'
+                                            ) :
+                                            h('table', { className: 'w-full' },
+                                                h('thead', null,
+                                                    h('tr', { className: 'border-b' },
+                                                        h('th', { 
+                                                            onClick: () => handleSort('name'),
+                                                            className: 'text-left py-3 px-4 cursor-pointer hover:bg-gray-100 select-none'
+                                                        }, 'Naam' + getSortIndicator('name')),
+                                                        h('th', { 
+                                                            onClick: () => handleSort('laps'),
+                                                            className: 'text-left py-3 px-4 cursor-pointer hover:bg-gray-100 select-none'
+                                                        }, 'Rondes' + getSortIndicator('laps')),
+                                                        h('th', { 
+                                                            onClick: () => handleSort('distance'),
+                                                            className: 'text-left py-3 px-4 cursor-pointer hover:bg-gray-100 select-none'
+                                                        }, 'Afstand' + getSortIndicator('distance')),
+                                                        h('th', { 
+                                                            onClick: () => handleSort('avgTime'),
+                                                            className: 'text-left py-3 px-4 cursor-pointer hover:bg-gray-100 select-none'
+                                                        }, 'Gem. Tijd' + getSortIndicator('avgTime')),
+                                                        h('th', { 
+                                                            onClick: () => handleSort('fastestTime'),
+                                                            className: 'text-left py-3 px-4 cursor-pointer hover:bg-gray-100 select-none'
+                                                        }, 'Snelste Tijd' + getSortIndicator('fastestTime'))
+                                                    )
+                                                ),
+                                                h('tbody', null,
+                                                    sorted.map((data, idx) => 
+                                                        h('tr', { key: idx, className: 'border-b hover:bg-gray-50' },
+                                                            h('td', { className: 'py-3 px-4 font-medium' }, data.runner.name),
+                                                            h('td', { className: 'py-3 px-4' }, data.laps),
+                                                            h('td', { className: 'py-3 px-4' }, `${data.distance.toFixed(2)} km`),
+                                                            h('td', { className: 'py-3 px-4 font-mono' }, data.avgTime ? formatTimeSimple(data.avgTime) : '--:--'),
+                                                            h('td', { className: 'py-3 px-4 font-mono text-green-600 font-semibold' }, data.fastestTime ? formatTimeSimple(data.fastestTime) : '--:--')
+                                                        )
+                                                    )
+                                                )
+                                            )
+                                    );
+                                })()
+                            )
+                        ),
+
+                        // All Laps section (collapsible)
+                        h('div', { className: 'bg-white rounded-lg shadow-lg p-6' },
+                            h('button', {
+                                onClick: () => setShowAllLaps(!showAllLaps),
+                                className: 'group w-full flex items-center justify-between mb-4 text-left rounded-lg px-4 py-3 border-2 border-transparent hover:border-humasol-orange hover:bg-orange-50 cursor-pointer transition-colors'
+                            },
+                                h('h2', { className: 'text-lg font-semibold transition-colors group-hover:text-humasol-brown' }, `Alle Rondes (${laps.length})`),
+                                h('span', { className: 'text-2xl text-gray-700 transition-colors group-hover:text-humasol-orange' }, showAllLaps ? '▲' : '▼')
+                            ),
+                            
+                            showAllLaps && h('div', null,
+                                // Search box
+                                h('div', { className: 'mb-4' },
+                                    h('input', {
+                                        type: 'text',
+                                        placeholder: 'Zoek op naam...',
+                                        value: lapSearchQuery,
+                                        onChange: e => setLapSearchQuery(e.target.value),
+                                        className: 'w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-humasol-orange focus:outline-none'
+                                    })
+                                ),
+                                
+                                // Laps table
+                                (() => {
+                                    // Filter laps based on search query
+                                    const filteredLaps = laps.filter(lap => {
+                                        if (!lapSearchQuery.trim()) return true;
+                                        return lap.runnerName.toLowerCase().includes(lapSearchQuery.toLowerCase());
+                                    });
+                                    
+                                    // Sort by timestamp (newest first)
+                                    const sortedLaps = [...filteredLaps].sort((a, b) => 
+                                        new Date(b.timestamp) - new Date(a.timestamp)
+                                    );
+                                    
+                                    return h('div', { className: 'overflow-x-auto' },
+                                        sortedLaps.length === 0 ? 
+                                            h('div', { className: 'text-center text-gray-400 py-8' }, 
+                                                lapSearchQuery.trim() ? 'Geen rondes gevonden' : 'Nog geen rondes'
+                                            ) :
+                                            h('table', { className: 'w-full text-sm' },
+                                                h('thead', null,
+                                                    h('tr', { className: 'border-b bg-gray-50' },
+                                                        h('th', { className: 'text-left py-2 px-3' }, '#'),
+                                                        h('th', { className: 'text-left py-2 px-3' }, 'Naam'),
+                                                        h('th', { className: 'text-left py-2 px-3' }, 'Tijd'),
+                                                        h('th', { className: 'text-left py-2 px-3' }, 'Start'),
+                                                        h('th', { className: 'text-left py-2 px-3' }, 'Finish'),
+                                                        h('th', { className: 'text-left py-2 px-3' }, 'Status')
+                                                    )
+                                                ),
+                                                h('tbody', null,
+                                                    sortedLaps.map((lap, idx) => {
+                                                        // Check for records
+                                                        const allTimes = laps.map(l => l.time);
+                                                        const isOverallRecord = lap.time === Math.min(...allTimes);
+                                                        
+                                                        const lapDate = new Date(lap.timestamp);
+                                                        const lapHour = lapDate.getHours();
+                                                        const hourStart = new Date(lapDate);
+                                                        hourStart.setMinutes(0, 0, 0);
+                                                        const hourEnd = new Date(hourStart);
+                                                        hourEnd.setHours(hourStart.getHours() + 1);
+                                                        
+                                                        const lapsThisHour = laps.filter(lap => {
+                                                            const lTime = new Date(lap.timestamp);
+                                                            return lTime >= hourStart && lTime < hourEnd;
+                                                        });
+                                                        const hourTimes = lapsThisHour.map(l => l.time);
+                                                        const isHourlyRecord = hourTimes.length > 0 && lap.time === Math.min(...hourTimes);
+                                                        
+                                                        // Check if this is the CURRENT personal record (best time for this runner)
+                                                        const runnerLaps = laps.filter(l => l.runnerId === lap.runnerId);
+                                                        const runnerBestTime = runnerLaps.length > 0 ? Math.min(...runnerLaps.map(l => l.time)) : Infinity;
+                                                        const isCurrentPersonalRecord = lap.time === runnerBestTime;
+                                                        
+                                                        const isRecord = isOverallRecord || isHourlyRecord;
+                                                        const showPersonalRecord = isCurrentPersonalRecord && !isRecord;
+                                                        
+                                                        return h('tr', { 
+                                                            key: idx, 
+                                                            className: `border-b hover:bg-gray-50 ${
+                                                                isOverallRecord ? 'bg-gradient-to-r from-yellow-100 via-yellow-50 to-orange-100' : 
+                                                                isHourlyRecord ? 'bg-green-50' : 
+                                                                showPersonalRecord ? 'bg-blue-50' : ''
+                                                            }`
+                                                        },
+                                                            h('td', { className: 'py-2 px-3 text-gray-500' }, filteredLaps.length - idx),
+                                                            h('td', { className: 'py-2 px-3 font-medium' }, 
+                                                                h('button', {
+                                                                    onClick: () => {
+                                                                        setLapSearchQuery(lap.runnerName);
+                                                                        setShowAllLaps(true);
+                                                                    },
+                                                                    className: 'text-left hover:text-humasol-orange hover:underline focus:outline-none'
+                                                                }, lap.runnerName)
+                                                            ),
+                                                            h('td', { className: 'py-2 px-3 font-mono font-semibold text-humasol-orange' }, 
+                                                                formatTimeSimple(lap.time)
+                                                            ),
+                                                            h('td', { className: 'py-2 px-3 text-gray-600' }, 
+                                                                lap.startTime ? new Date(lap.startTime).toLocaleTimeString('nl-NL', { 
+                                                                    hour: '2-digit', 
+                                                                    minute: '2-digit',
+                                                                    second: '2-digit'
+                                                                }) : '-'
+                                                            ),
+                                                            h('td', { className: 'py-2 px-3 text-gray-600' }, 
+                                                                new Date(lap.timestamp).toLocaleTimeString('nl-NL', { 
+                                                                    hour: '2-digit', 
+                                                                    minute: '2-digit',
+                                                                    second: '2-digit'
+                                                                })
+                                                            ),
+                                                            h('td', { className: 'py-2 px-3' },
+                                                                isOverallRecord ? h('span', { 
+                                                                    className: 'px-2 py-1 bg-gradient-to-r from-yellow-500 to-orange-500 text-white text-xs font-extrabold rounded shadow-md'
+                                                                }, '🏆 RECORD') :
+                                                                isHourlyRecord ? h('span', { 
+                                                                    className: 'px-2 py-1 bg-green-600 text-white text-xs font-bold rounded'
+                                                                }, `⚡ ${lapHour}u`) :
+                                                                showPersonalRecord ? h('span', { 
+                                                                    className: 'px-2 py-1 bg-blue-500 text-white text-xs font-bold rounded'
+                                                                }, '👤 PR') : ''
+                                                            )
+                                                        );
+                                                    })
+                                                )
+                                            )
+                                    );
+                                })()
+                            )
+                        )
+                    ),
+
+                    // Display View - For second screen/projector
+                    view === 'display' && h('div', { className: 'min-h-screen bg-white' },
+                        // Fullscreen toggle button (midden bovenaan)
+                        h('button', {
+                            onClick: () => {
+                                if (!isDisplayFullscreen) {
+                                    setIsDisplayFullscreen(true);
+                                    document.documentElement.requestFullscreen().catch(err => {
+                                        console.error('Fullscreen error:', err);
+                                    });
+                                } else {
+                                    setIsDisplayFullscreen(false);
+                                    if (document.fullscreenElement) {
+                                        document.exitFullscreen();
+                                    }
+                                }
+                            },
+                            className: 'fixed top-4 left-1/2 transform -translate-x-1/2 z-50 px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg shadow-lg text-sm font-semibold'
+                        }, isDisplayFullscreen ? '← Exit Fullscreen' : '⛶ Fullscreen'),
+
+                        // Compact header bar
+                        h('div', { className: 'bg-gradient-to-r from-humasol-orange to-humasol-brown text-white px-8 py-3 shadow-lg' },
+                            h('div', { className: 'max-w-full mx-auto flex items-center justify-between' },
+                                h('div', null,
+                                    h('div', { className: 'text-2xl font-bold' }, '24u Loop Leuven'),
+                                    h('div', { className: 'text-base' }, `${dateTime.date} • ${dateTime.time}`)
+                                ),
+                                h('div', { className: 'text-right' },
+                                    h('div', { className: 'text-sm uppercase tracking-wider text-humasol-beige font-semibold' }, 'TOTAAL AANTAL RONDES'),
+                                    h('div', { className: 'text-5xl font-bold tracking-tight' }, totalLaps),
+                                    h('div', { className: 'text-base text-humasol-white font-medium' }, `${totalDistance.toFixed(2)} km gelopen`)
+                                )
+                            )
+                        ),
+
+                        // Main content area
+                        h('div', { className: 'px-6 py-4' },
+                            h('div', { className: 'grid grid-cols-2 gap-4' },
+                                // Left: Active runner + Latest 10 times
+                                h('div', { className: 'space-y-4' },
+                                    // Active runner (if running)
+                                    activeRunner && isRunning && h('div', { className: 'bg-white rounded-lg shadow-lg border-4 border-orange-500 p-4 animate-pulse' },
+                                        h('div', { className: 'flex items-center justify-between' },
+                                            h('div', null,
+                                                h('div', { className: 'text-sm font-semibold text-orange-600 uppercase tracking-wide mb-1' }, '🏃 NU AAN HET LOPEN'),
+                                                h('div', { className: 'text-2xl font-bold text-gray-800' }, activeRunner.runnerName)
+                                            ),
+                                            h('div', { className: 'text-right' },
+                                                h('div', { className: 'text-sm text-gray-600 mb-1' }, 'Huidige Tijd'),
+                                                h('div', { className: 'text-3xl font-mono font-bold text-orange-600' }, formatTime(elapsedTime))
+                                            )
+                                        )
+                                    ),
+
+                                    // Latest 10 times
+                                    h('div', { className: 'bg-white rounded-lg shadow-lg border-2 border-gray-200 p-4' },
+                                        h('h2', { className: 'text-xl font-bold mb-3 text-gray-800 border-b-2 pb-2' }, 'Laatste Rondes'),
+                                        laps.length === 0 ? h('div', { className: 'text-center text-gray-400 py-8 text-lg' }, 'Nog geen rondes...') :
+                                        h('div', { className: 'space-y-2' },
+                                            [...laps].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)).slice(0, 9).map((lap, idx) => {
+                                                const runner = runners.find(r => r.id === lap.runnerId);
+                                                const totalLaps = runner ? runner.totalLaps : 0;
+                                                
+                                                // Check for overall record
+                                                const allTimes = laps.map(l => l.time);
+                                                const isOverallRecord = lap.time === Math.min(...allTimes);
+                                                
+                                                // Check for record in last hour - get current hour
+                                                const lapDate = new Date(lap.timestamp);
+                                                const lapHour = lapDate.getHours();
+                                                const hourStart = new Date(lapDate);
+                                                hourStart.setMinutes(0, 0, 0);
+                                                const hourEnd = new Date(hourStart);
+                                                hourEnd.setHours(hourStart.getHours() + 1);
+                                                
+                                                const lapsThisHour = laps.filter(lap => {
+                                                    const lTime = new Date(lap.timestamp);
+                                                    return lTime >= hourStart && lTime < hourEnd;
+                                                });
+                                                const hourTimes = lapsThisHour.map(l => l.time);
+                                                const isHourlyRecord = hourTimes.length > 0 && lap.time === Math.min(...hourTimes);
+                                                
+                                                // Check for personal record
+                                                const runnerLaps = laps.filter(l => l.runnerId === lap.runnerId);
+                                                const runnerTimes = runnerLaps.map(l => l.time);
+                                                const isPersonalRecord = lap.isPersonalRecord || (runnerTimes.length > 0 && lap.time === Math.min(...runnerTimes));
+                                                
+                                                const isRecord = isOverallRecord || isHourlyRecord;
+                                                const showPersonalRecord = isPersonalRecord && !isRecord;
+                                                
+                                                return h('div', { 
+                                                    key: idx, 
+                                                    className: `p-2.5 rounded-lg ${
+                                                        isOverallRecord ? 'bg-gradient-to-r from-yellow-100 via-yellow-50 to-orange-100 border-4 border-yellow-400 shadow-lg animate-pulse' : 
+                                                        isHourlyRecord ? 'bg-green-50 border-2 border-green-300' : 
+                                                        showPersonalRecord ? 'bg-blue-50 border-2 border-blue-200' : 
+                                                        'bg-gray-50'
+                                                    }`
+                                                },
+                                                    h('div', { className: 'flex justify-between items-center mb-1' },
+                                                        h('div', { className: 'flex items-center gap-2 flex-wrap' },
+                                                            h('span', { className: 'font-bold text-lg' }, lap.runnerName),
+                                                            h('span', { className: 'text-xs text-gray-500' }, `(${totalLaps} ${totalLaps === 1 ? 'ronde' : 'rondes'})`),
+                                                            isOverallRecord && h('span', { 
+                                                                className: 'px-2 py-1 bg-gradient-to-r from-yellow-500 to-orange-500 text-white text-xs font-extrabold rounded-lg uppercase shadow-md'
+                                                            }, '🏆 RECORD'),
+                                                            isHourlyRecord && !isOverallRecord && h('span', { 
+                                                                className: 'px-2 py-1 bg-green-600 text-white text-[10px] font-bold rounded uppercase'
+                                                            }, `⚡ ${lapHour}u`),
+                                                            showPersonalRecord && h('span', { 
+                                                                className: 'px-2 py-1 bg-blue-500 text-white text-[10px] font-bold rounded'
+                                                            }, '👤 PR')
+                                                        ),
+                                                        h('span', { className: 'font-mono font-bold text-xl text-humasol-orange' }, formatTimeSimple(lap.time))
+                                                    ),
+                                                    h('div', { className: 'text-xs text-gray-600' },
+                                                        `Gestart: ${lap.startTime ? new Date(lap.startTime).toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : '-'}`
+                                                    )
+                                                );
+                                            })
+                                        )
+                                    )
+                                ),
+
+                                // Right: Leaderboards side by side
+                                h('div', { className: 'grid grid-cols-2 gap-4' },
+                                    // Top 10 fastest laps
+                                    h('div', { className: 'bg-white rounded-lg shadow-lg border-2 border-gray-200 p-3' },
+                                        h('h3', { className: 'text-lg font-bold mb-2 text-gray-800 border-b-2 pb-1' }, 'Top 10 Snelste Rondes'),
+                                        fastestLaps.length === 0 ? h('div', { className: 'text-center text-gray-400 py-4 text-xs' }, 'Nog geen data') :
+                                        h('div', { className: 'space-y-1' },
+                                            fastestLaps.slice(0, 10).map((lap, idx) =>
+                                                h('div', { 
+                                                    key: idx, 
+                                                    className: `flex flex-col p-1.5 rounded ${
+                                                        idx < 3 ? 'bg-yellow-50 font-semibold' : 'bg-gray-50'
+                                                    }`
+                                                },
+                                                    h('div', { className: 'flex items-center justify-between' },
+                                                        h('div', { className: 'flex items-center gap-1.5 flex-1 min-w-0' },
+                                                            h('span', { 
+                                                                className: `${idx < 3 ? 'text-base' : 'text-sm'} font-bold ${idx < 3 ? 'text-yellow-600' : 'text-gray-400'}` 
+                                                            }, `#${idx + 1}`),
+                                                            h('span', { className: `${idx < 3 ? 'text-sm' : 'text-xs'} truncate` }, lap.runnerName)
+                                                        ),
+                                                        h('span', { className: `${idx < 3 ? 'text-sm' : 'text-xs'} font-mono font-semibold text-humasol-orange` }, formatTimeSimple(lap.time))
+                                                    ),
+                                                    h('div', { className: 'text-[10px] text-gray-500 ml-6' },
+                                                        `Om ${new Date(lap.timestamp).toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' })}`                                                    )
+                                                )
+                                            )
+                                        )
+                                    ),
+
+                                    // Top 10 most laps
+                                    h('div', { className: 'bg-white rounded-lg shadow-lg border-2 border-gray-200 p-3' },
+                                        h('h3', { className: 'text-lg font-bold mb-2 text-gray-800 border-b-2 pb-1' }, 'Top 10 Meeste Rondes'),
+                                        lapsByRunner.length === 0 ? h('div', { className: 'text-center text-gray-400 py-4 text-xs' }, 'Nog geen data') :
+                                        h('div', { className: 'space-y-1' },
+                                            lapsByRunner.slice(0, 10).map((runner, idx) => {
+                                                // Get the last lap time for this runner
+                                                const runnerLaps = laps.filter(l => l.runnerId === runner.id);
+                                                const lastLap = runnerLaps.length > 0 
+                                                    ? runnerLaps.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))[0]
+                                                    : null;
+                                                
+                                                return h('div', { 
+                                                    key: idx, 
+                                                    className: `flex flex-col p-1.5 rounded ${
+                                                        idx < 3 ? 'bg-blue-50 font-semibold' : 'bg-gray-50'
+                                                    }`
+                                                },
+                                                    h('div', { className: 'flex items-center justify-between' },
+                                                        h('div', { className: 'flex items-center gap-1.5 flex-1 min-w-0' },
+                                                            h('span', { 
+                                                                className: `${idx < 3 ? 'text-base' : 'text-sm'} font-bold ${idx < 3 ? 'text-blue-600' : 'text-gray-400'}` 
+                                                            }, `#${idx + 1}`),
+                                                            h('span', { className: `${idx < 3 ? 'text-sm' : 'text-xs'} truncate` }, runner.name)
+                                                        ),
+                                                        h('span', { className: `${idx < 3 ? 'text-sm' : 'text-xs'} font-bold text-blue-600` }, `${runner.laps}`)
+                                                    ),
+                                                    lastLap && h('div', { className: 'text-[10px] text-gray-500 ml-6' },
+                                                        `Laatste om ${new Date(lastLap.timestamp).toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' })}`
+                                                    )
+                                                );
+                                            })
+                                        )
+                                    ),
+
+                                    // Statistics panel replacing the hourly top 10
+                                    (() => {
+                                        // Calculate statistics
+                                        const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+                                        const lapsLastHour = laps.filter(l => new Date(l.timestamp) > oneHourAgo);
+                                        
+                                        const fastestLapEver = laps.length ? Math.min(...laps.map(l => l.time)) : 0;
+                                        const fastestLapLastHour = lapsLastHour.length ? Math.min(...lapsLastHour.map(l => l.time)) : 0;
+                                        const avgTimeAll = laps.length ? laps.reduce((sum, l) => sum + l.time, 0) / laps.length : 0;
+                                        const avgTimeLastHour = lapsLastHour.length ? lapsLastHour.reduce((sum, l) => sum + l.time, 0) / lapsLastHour.length : 0;
+                                        
+                                        const stats = [
+                                            { 
+                                                label: 'Totale Afstand', 
+                                                value: `${totalDistance.toFixed(1)} km`,
+                                                color: 'indigo'
+                                            },
+                                            { 
+                                                label: 'Rondes Laatste Uur', 
+                                                value: lapsLastHour.length.toString(),
+                                                color: 'orange'
+                                            },
+                                            { 
+                                                label: 'Snelste Ronde', 
+                                                value: fastestLapEver ? formatTimeSimple(fastestLapEver) : '--:--',
+                                                color: 'yellow'
+                                            },
+                                            { 
+                                                label: 'Snelste Laatste Uur', 
+                                                value: fastestLapLastHour ? formatTimeSimple(fastestLapLastHour) : '--:--',
+                                                color: 'green'
+                                            },
+                                            { 
+                                                label: 'Gemiddelde Tijd', 
+                                                value: avgTimeAll ? formatTimeSimple(avgTimeAll) : '--:--',
+                                                color: 'blue'
+                                            },
+                                            { 
+                                                label: 'Gemiddelde Laatste Uur', 
+                                                value: avgTimeLastHour ? formatTimeSimple(avgTimeLastHour) : '--:--',
+                                                color: 'purple'
+                                            }
+                                        ];
+                                        
+                                        return h('div', { className: 'bg-white rounded-lg shadow-lg border-2 border-gray-200 p-3' },
+                                            h('h3', { className: 'text-lg font-bold mb-3 text-gray-800 border-b-2 pb-1' }, 'Live Statistieken'),
+                                            h('div', { className: 'grid grid-cols-2 gap-2' },
+                                                stats.map((stat, idx) =>
+                                                    h('div', { 
+                                                        key: idx, 
+                                                        className: `bg-gradient-to-br from-${stat.color}-50 to-${stat.color}-100 p-3 rounded-lg border border-${stat.color}-200`
+                                                    },
+                                                        h('div', { className: 'text-xs font-semibold text-gray-700 uppercase tracking-wide mb-1' }, stat.label),
+                                                        h('div', { className: `text-2xl font-bold text-${stat.color}-700 font-mono` }, stat.value)
+                                                    )
+                                                )
+                                            )
+                                        );
+                                    })(),
+
+                                    // Humasol promo section with QR code
+                                    h('div', { className: 'bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg shadow-xl border-4 border-humasol-orange p-5' },
+                                        h('div', { className: 'flex items-center justify-between gap-6' },
+                                            // Left: Logo and slogan
+                                            h('div', { className: 'flex-1 flex flex-col items-center text-center' },
+                                                h('img', { 
+                                                    src: 'humasol_logo.png', 
+                                                    alt: 'Humasol Logo',
+                                                    className: 'h-24 w-auto object-contain mb-3'
+                                                }),
+                                                h('div', { className: 'text-xl text-humasol-brown font-bold italic' }, '"Renewable technology for all"')
+                                            ),
+                                            // Right: QR Code with Instagram
+                                            h('div', { className: 'bg-white p-4 rounded-xl shadow-lg' },
+                                                h('div', { className: 'flex items-center justify-center gap-2 mb-2' },
+                                                    h('img', {
+                                                        src: 'Instagram_icon.png',
+                                                        alt: 'Instagram',
+                                                        className: 'w-6 h-6'
+                                                    }),
+                                                    h('div', { className: 'text-sm font-bold text-humasol-brown uppercase' }, 'Volg Ons!')
+                                                ),
+                                                h('img', {
+                                                    src: 'https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=https://www.instagram.com/humasol_vzw',
+                                                    alt: 'QR Code Instagram',
+                                                    className: 'w-35 h-35 mb-2'
+                                                }),
+                                                h('div', { className: 'text-xs text-humasol-brown text-center font-semibold' }, '@humasol_vzw')
+                                            )
+                                        )
+                                    )
+                                )
+                            )
+                        )
+                    ),
+
+                    // Admin View
+                    view === 'admin' && h('div', { className: 'space-y-6' },
+                        !isAdminUnlocked ? (
+                            h('div', { className: 'bg-white rounded-lg shadow-lg p-8 max-w-md mx-auto' },
+                                h('h2', { className: 'text-2xl font-semibold mb-6 text-center flex items-center justify-center' },
+                                    h(Icon, { name: 'shield', className: 'w-6 h-6 mr-2 text-humasol-orange' }),
+                                    'Admin Toegang'
+                                ),
+                                h('p', { className: 'text-gray-600 mb-4 text-center' }, 'Voer het admin wachtwoord in'),
+                                h('input', {
+                                    type: 'password',
+                                    placeholder: 'Wachtwoord',
+                                    value: adminPassword,
+                                    onChange: e => setAdminPassword(e.target.value),
+                                    onKeyPress: e => e.key === 'Enter' && unlockAdmin(),
+                                    className: 'w-full px-4 py-3 border rounded-lg mb-4'
+                                }),
+                                h('button', {
+                                    onClick: unlockAdmin,
+                                    className: 'w-full bg-humasol-orange hover:bg-humasol-brown text-white font-semibold py-3 rounded-lg'
+                                }, 'Ontgrendelen'),
+                                h('p', { className: 'text-xs text-gray-500 mt-4 text-center' }, 'Standaard wachtwoord: admin2024')
+                            )
+                        ) : (
+                            h('div', { className: 'space-y-6' },
+                                h('div', { className: 'bg-white rounded-lg shadow-lg p-6' },
+                                    h('div', { className: 'flex justify-between items-center mb-4' },
+                                        h('h2', { className: 'text-lg font-semibold text-red-600' }, '⚠️ Admin Functies'),
+                                        h('button', {
+                                            onClick: () => setIsAdminUnlocked(false),
+                                            className: 'text-sm text-gray-600 hover:text-gray-900'
+                                        }, 'Vergrendelen')
+                                    ),
+                                    h('p', { className: 'text-sm text-gray-600' }, 'Gebruik deze functies alleen bij fouten!')
+                                ),
+
+                                h('div', { className: 'bg-white rounded-lg shadow-lg p-6' },
+                                    h('h3', { className: 'text-lg font-semibold mb-4' }, 'Snelle Acties'),
+                                    h('div', { className: 'space-y-3' },
+                                        h('button', {
+                                            onClick: deleteLastLap,
+                                            disabled: laps.length === 0,
+                                            className: 'w-full bg-orange-600 hover:bg-orange-700 disabled:bg-gray-300 text-white font-semibold py-3 rounded-lg flex items-center justify-center space-x-2'
+                                        },
+                                            h(Icon, { name: 'trash', className: 'w-5 h-5' }),
+                                            h('span', null, `Verwijder Laatste Ronde ${laps.length > 0 ? `(${laps[laps.length - 1].runnerName})` : ''}`)
+                                        ),
+                                        activeRunner && h('button', {
+                                            onClick: cancelCurrentRun,
+                                            className: 'w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-3 rounded-lg flex items-center justify-center space-x-2'
+                                        },
+                                            h(Icon, { name: 'x', className: 'w-5 h-5' }),
+                                            h('span', null, 'Stop Huidige Timer Zonder Opslaan')
+                                        )
+                                    )
+                                ),
+
+                                h('div', { className: 'bg-white rounded-lg shadow-lg p-6' },
+                                    h('h3', { className: 'text-lg font-semibold mb-4 flex items-center' },
+                                        h(Icon, { name: 'chart', className: 'w-5 h-5 mr-2 text-green-600' }),
+                                        'Data Export'
+                                    ),
+                                    h('p', { className: 'text-sm text-gray-600 mb-4' }, 'Download alle data voor analyse in Excel of andere tools'),
+                                    h('div', { className: 'space-y-3' },
+                                        h('button', {
+                                            onClick: exportToCSV,
+                                            disabled: laps.length === 0,
+                                            className: 'w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-300 text-white font-semibold py-3 rounded-lg flex items-center justify-center space-x-2'
+                                        },
+                                            h('span', null, '📊'),
+                                            h('span', null, `Export Alle Rondes (${laps.length}) naar CSV`)
+                                        ),
+                                        h('button', {
+                                            onClick: exportRunnersToCSV,
+                                            disabled: runners.length === 0,
+                                            className: 'w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 text-white font-semibold py-3 rounded-lg flex items-center justify-center space-x-2'
+                                        },
+                                            h('span', null, '👥'),
+                                            h('span', null, `Export Alle Lopers (${runners.length}) naar CSV`)
+                                        )
+                                    ),
+                                    h('div', { className: 'mt-3 p-3 bg-blue-50 rounded-lg' },
+                                        h('p', { className: 'text-xs text-blue-700' },
+                                            h('strong', null, 'Tips: '),
+                                            'Open CSV bestanden in Excel, Google Sheets of LibreOffice Calc voor verdere analyse en grafieken.'
+                                        )
+                                    )
+                                ),
+
+                                h('div', { className: 'bg-white rounded-lg shadow-lg p-6' },
+                                    h('h3', { className: 'text-lg font-semibold mb-4' }, 'Laatste 10 Rondes'),
+                                    laps.length === 0 ? h('div', { className: 'text-center text-gray-400 py-4' }, 'Nog geen rondes') :
+                                    h('div', { className: 'space-y-2' },
+                                        laps.slice(-10).reverse().map((lap, idx) =>
+                                            h('div', {
+                                                key: idx,
+                                                className: 'p-3 bg-gray-50 rounded-lg'
+                                            },
+                                                editingLapId === lap.id ? (
+                                                    // Edit mode
+                                                    h('div', { className: 'space-y-2' },
+                                                        h('div', { className: 'flex items-center gap-2' },
+                                                            h('span', { className: 'font-medium text-sm' }, lap.runnerName),
+                                                            h('input', {
+                                                                type: 'text',
+                                                                value: editingLapTime,
+                                                                onChange: e => setEditingLapTime(e.target.value),
+                                                                placeholder: 'MM:SS',
+                                                                className: 'flex-1 px-2 py-1 border rounded text-sm font-mono'
+                                                            })
+                                                        ),
+                                                        h('div', { className: 'flex gap-2' },
+                                                            h('button', {
+                                                                onClick: () => saveEditedLap(lap),
+                                                                className: 'flex-1 px-3 py-1 bg-green-600 hover:bg-green-700 text-white text-sm rounded font-semibold'
+                                                            }, '✓ Opslaan'),
+                                                            h('button', {
+                                                                onClick: cancelEditingLap,
+                                                                className: 'flex-1 px-3 py-1 bg-gray-400 hover:bg-gray-500 text-white text-sm rounded'
+                                                            }, '✗ Annuleren')
+                                                        )
+                                                    )
+                                                ) : (
+                                                    // Display mode
+                                                    h('div', { className: 'flex justify-between items-center' },
+                                                        h('div', { className: 'flex-1' },
+                                                            h('div', { className: 'font-medium text-sm' }, lap.runnerName),
+                                                            h('div', { className: 'text-xs text-gray-500' }, 
+                                                                new Date(lap.timestamp).toLocaleTimeString('nl-NL', { 
+                                                                    hour: '2-digit', 
+                                                                    minute: '2-digit',
+                                                                    second: '2-digit'
+                                                                })
+                                                            )
+                                                        ),
+                                                        h('div', { className: 'flex items-center gap-2' },
+                                                            h('span', { className: 'text-indigo-600 font-mono font-semibold' }, formatTimeSimple(lap.time)),
+                                                            h('button', {
+                                                                onClick: () => startEditingLap(lap),
+                                                                className: 'px-2 py-1 bg-blue-500 hover:bg-blue-600 text-white text-xs rounded',
+                                                                title: 'Tijd aanpassen'
+                                                            }, '✏️'),
+                                                            h('button', {
+                                                                onClick: () => deleteLap(lap),
+                                                                className: 'px-2 py-1 bg-red-500 hover:bg-red-600 text-white text-xs rounded',
+                                                                title: 'Verwijderen'
+                                                            }, '🗑️')
+                                                        )
+                                                    )
+                                                )
+                                            )
+                                        )
+                                    )
+                                ),
+
+                                h('div', { className: 'bg-red-50 border-2 border-red-300 rounded-lg p-6' },
+                                    h('h3', { className: 'text-lg font-semibold mb-4 text-red-700' }, '🔴 Gevaarlijke Zone'),
+                                    h('p', { className: 'text-sm text-red-600 mb-4' }, 'Deze acties kunnen niet ongedaan gemaakt worden!'),
+                                    h('button', {
+                                        onClick: () => setShowResetConfirm(!showResetConfirm),
+                                        className: 'w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-3 rounded-lg mb-2'
+                                    }, showResetConfirm ? 'Annuleer' : 'Reset Alle Data'),
+                                    showResetConfirm && h('div', { className: 'mt-4 p-4 bg-white rounded border-2 border-red-400' },
+                                        h('p', { className: 'text-sm text-red-700 mb-3 font-semibold' }, 'WAARSCHUWING: Dit verwijdert ALLE rondes, lopers en wachtrij data!'),
+                                        h('button', {
+                                            onClick: async () => {
+                                                if (confirm('LAATSTE WAARSCHUWING: Alle data wordt permanent verwijderd. Doorgaan?')) {
+                                                    // Delete all data
+                                                    for (let lap of laps) {
+                                                        await firestoreWrapper.collection('laps').doc(lap.id).delete();
+                                                    }
+                                                    for (let runner of runners) {
+                                                        await firestoreWrapper.collection('runners').doc(runner.id).delete();
+                                                    }
+                                                    for (let q of queue) {
+                                                        await firestoreWrapper.collection('queue').doc(q.id).delete();
+                                                    }
+                                                    setShowResetConfirm(false);
+                                                    alert('Alle data is verwijderd');
+                                                }
+                                            },
+                                            className: 'w-full bg-red-700 hover:bg-red-800 text-white font-bold py-2 rounded'
+                                        }, 'JA, VERWIJDER ALLES')
+                                    )
+                                )
+                            )
+                        )
+                    )
+                ),
+
+                // Firebase warning
+                !isFirebaseConfigured && h('div', { className: 'fixed bottom-4 right-4 bg-yellow-100 border-2 border-yellow-500 rounded-lg p-4 max-w-md shadow-lg' },
+                    h('div', { className: 'font-semibold text-yellow-800 mb-2' }, '⚠️ Demo Modus'),
+                    h('div', { className: 'text-sm text-yellow-700' }, 'Vervang de Firebase config om multi-device sync te activeren.')
+                )
+            );
+        }
+
+        ReactDOM.render(h(App), document.getElementById('root'));
+
+        // Register Service Worker for PWA functionality
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('service-worker.js')
+                    .then(registration => {
+                        console.log('✅ Service Worker registered successfully:', registration.scope);
+                        
+                        // Check for updates periodically
+                        setInterval(() => {
+                            registration.update();
+                        }, 60000); // Check every minute
+                    })
+                    .catch(error => {
+                        console.log('❌ Service Worker registration failed:', error);
+                    });
+            });
+        }
+
+        // Handle app install prompt
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            console.log('💾 App can be installed');
+        });
+    </script>
+</body>
+</html>
