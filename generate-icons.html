@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Icon Generator - 24u Loop</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #f2a342 0%, #863c14 100%);
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            text-align: center;
+            max-width: 600px;
+        }
+        h1 {
+            color: #863c14;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+        }
+        .icon-preview {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+        canvas {
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        button {
+            background: #f2a342;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 10px;
+            transition: all 0.3s;
+        }
+        button:hover {
+            background: #863c14;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+        .info {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            text-align: left;
+        }
+        .info h3 {
+            margin-top: 0;
+            color: #863c14;
+        }
+        .info ol {
+            padding-left: 20px;
+        }
+        .info li {
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏃 24u Loop Leuven</h1>
+        <p class="subtitle">PWA Icon Generator</p>
+        
+        <div class="icon-preview">
+            <div>
+                <p><strong>192x192</strong></p>
+                <canvas id="icon192" width="192" height="192"></canvas>
+            </div>
+            <div>
+                <p><strong>512x512</strong></p>
+                <canvas id="icon512" width="512" height="512"></canvas>
+            </div>
+        </div>
+        
+        <button onclick="downloadIcon('icon192', 'icon-192.png')">⬇️ Download 192x192</button>
+        <button onclick="downloadIcon('icon512', 'icon-512.png')">⬇️ Download 512x512</button>
+        
+        <div class="info">
+            <h3>📋 Instructies:</h3>
+            <ol>
+                <li>Klik op de download knoppen om beide icons te downloaden</li>
+                <li>Plaats <code>icon-192.png</code> en <code>icon-512.png</code> in dezelfde folder als <code>index.html</code></li>
+                <li>De app is nu installeerbaar als PWA! 🎉</li>
+                <li><strong>Optioneel:</strong> Vervang de icons met je eigen ontwerp (behoud de bestandsnamen)</li>
+            </ol>
+        </div>
+    </div>
+
+    <script>
+        function drawIcon(canvas) {
+            const ctx = canvas.getContext('2d');
+            const size = canvas.width;
+            
+            // Background gradient
+            const gradient = ctx.createLinearGradient(0, 0, size, size);
+            gradient.addColorStop(0, '#f2a342');
+            gradient.addColorStop(1, '#863c14');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, size, size);
+            
+            // Running person emoji (simplified)
+            ctx.font = `bold ${size * 0.5}px Arial`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('🏃', size / 2, size / 2);
+            
+            // Add "24u" text
+            ctx.font = `bold ${size * 0.15}px Arial`;
+            ctx.fillStyle = 'white';
+            ctx.strokeStyle = '#863c14';
+            ctx.lineWidth = size * 0.01;
+            const text = '24u';
+            ctx.strokeText(text, size / 2, size * 0.85);
+            ctx.fillText(text, size / 2, size * 0.85);
+        }
+        
+        function downloadIcon(canvasId, filename) {
+            const canvas = document.getElementById(canvasId);
+            const link = document.createElement('a');
+            link.download = filename;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+        
+        // Draw icons on load
+        window.addEventListener('load', () => {
+            drawIcon(document.getElementById('icon192'));
+            drawIcon(document.getElementById('icon512'));
+        });
+    </script>
+</body>
+</html>
